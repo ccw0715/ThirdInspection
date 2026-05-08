@@ -2434,10 +2434,377 @@
     </div>
   </div>
 
+  <!-- 页面 4: 检查详情查看（只读） -->
+  <div class="phone">
+    <div class="statusbar">
+      <span>9:41</span>
+      <span class="icons">●●● 5G ▮▮</span>
+    </div>
+    <div class="navbar">
+      <div class="back">‹</div>
+      <div class="title">检查详情</div>
+      <div class="save-draft" style="visibility:hidden;">存草稿</div>
+    </div>
+
+    <div class="project-card">
+      <div class="row1">
+        <div class="name">金百合花园 · 三期</div>
+        <div class="tag">中盘</div>
+      </div>
+      <div class="meta">
+        <span>检查员 张明</span>
+        <span>2026-05-08</span>
+      </div>
+    </div>
+
+    <!-- 状态条 -->
+    <div class="detail-status hq">
+      <div class="st-icon">⏳</div>
+      <div class="body">
+        <div class="st-label">待总部审核</div>
+        <div class="st-meta">提交于 2026-05-08 17:08</div>
+      </div>
+      <div class="st-score">
+        <div class="v">82.3<span style="font-size:13px;opacity:0.6;">%</span></div>
+        <div class="l">最终得分率</div>
+      </div>
+    </div>
+
+    <div class="tabs">
+      <div class="tab active">红线问题<span class="badge">2</span></div>
+      <div class="tab">评分表</div>
+      <div class="tab">总结</div>
+    </div>
+
+    <div class="content">
+
+      <!-- 红线汇总 -->
+      <div class="summary-strip">
+        <div class="left">
+          <div class="lbl">⚠️ 已触发红线问题</div>
+          <div class="desc">触及红线在项目总分基础上倒扣 5 分</div>
+        </div>
+        <div class="right">
+          <div class="num">-5<small style="font-size:14px;">分</small></div>
+          <div class="unit">2 项已触发</div>
+        </div>
+      </div>
+
+      <!-- 事故安全 -->
+      <div class="group">
+        <div class="group-header">
+          <div class="icon c1">事</div>
+          <div class="name">事故安全</div>
+          <div class="count">已触发 <em>1</em> / 4 项</div>
+        </div>
+
+        <div class="ro-redline-item">
+          <div class="top">
+            <div class="idx">1</div>
+            <div class="body">
+              <div class="r-title">公共区域致人伤亡安全隐患</div>
+              <div class="r-desc">井盖缺失 / 高空坠物 / 电线外露无包扎</div>
+            </div>
+            <span class="badge ok">未触发</span>
+          </div>
+          <div class="ro-row">
+            <span class="lbl">扣分处数</span>
+            <span class="num">0</span>
+          </div>
+        </div>
+
+        <div class="ro-redline-item" style="background:#fffbe6;">
+          <div class="top">
+            <div class="idx">2</div>
+            <div class="body">
+              <div class="r-title">机房门锁未有效关闭</div>
+              <div class="r-desc">电梯机房 / 水泵房 / 配电室 1 处,或其余机房 3 处及以上</div>
+            </div>
+            <span class="badge bad">已触发</span>
+          </div>
+          <div class="ro-row">
+            <span class="lbl">扣分处数</span>
+            <span class="num bad">2</span>
+          </div>
+          <div class="ro-content">
+            <div class="desc-text">2 号楼水泵房门锁未锁,3 号楼配电室门锁松动。</div>
+            <div class="photos">
+              <div class="photo"></div>
+              <div class="photo"></div>
+              <div class="photo"></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="ro-redline-item">
+          <div class="top">
+            <div class="idx">3</div>
+            <div class="body">
+              <div class="r-title">装修监管严重失职</div>
+              <div class="r-desc">私自装修 / 消防隐患 / 拆改承重结构等</div>
+            </div>
+            <span class="badge ok">未触发</span>
+          </div>
+          <div class="ro-row"><span class="lbl">扣分处数</span><span class="num">0</span></div>
+        </div>
+
+        <div class="ro-redline-item">
+          <div class="top">
+            <div class="idx">4</div>
+            <div class="body">
+              <div class="r-title">危险物品管理不当</div>
+              <div class="r-desc">消杀药品 / 清洁剂 / 易燃易爆品管理</div>
+            </div>
+            <span class="badge ok">未触发</span>
+          </div>
+          <div class="ro-row"><span class="lbl">扣分处数</span><span class="num">0</span></div>
+        </div>
+      </div>
+
+      <!-- 消防安全 -->
+      <div class="group">
+        <div class="group-header">
+          <div class="icon c2">消</div>
+          <div class="name">消防安全</div>
+          <div class="count">已触发 <em>1</em> / 4 项</div>
+        </div>
+
+        <div class="ro-redline-item">
+          <div class="top">
+            <div class="idx">5</div>
+            <div class="body">
+              <div class="r-title">消防通道堵塞</div>
+              <div class="r-desc">消防通道被杂物或车辆堵塞不通</div>
+            </div>
+            <span class="badge ok">未触发</span>
+          </div>
+          <div class="ro-row"><span class="lbl">扣分处数</span><span class="num">0</span></div>
+        </div>
+
+        <div class="ro-redline-item">
+          <div class="top">
+            <div class="idx">6</div>
+            <div class="body">
+              <div class="r-title">电梯中控无人应答</div>
+              <div class="r-desc">1 台电梯中控测试 2 分钟均无人应答</div>
+            </div>
+            <span class="badge ok">未触发</span>
+          </div>
+          <div class="ro-row"><span class="lbl">扣分处数</span><span class="num">0</span></div>
+        </div>
+
+        <div class="ro-redline-item" style="background:#fffbe6;">
+          <div class="top">
+            <div class="idx">7</div>
+            <div class="body">
+              <div class="r-title">电动车违规停放 / 飞线充电</div>
+              <div class="r-desc">楼宇内 3 处及以上停放,或园区 1 处飞线充电</div>
+            </div>
+            <span class="badge bad">已触发</span>
+          </div>
+          <div class="ro-row">
+            <span class="lbl">扣分处数</span>
+            <span class="num bad">1</span>
+          </div>
+          <div class="ro-content">
+            <div class="desc-text">A 区 5 栋楼下存在飞线充电现象。</div>
+            <div class="photos">
+              <div class="photo"></div>
+              <div class="photo"></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="ro-redline-item">
+          <div class="top">
+            <div class="idx">8</div>
+            <div class="body">
+              <div class="r-title">消防栓水压不足或无水</div>
+              <div class="r-desc">园区 / 楼栋天面 / 地库任 1 处</div>
+            </div>
+            <span class="badge ok">未触发</span>
+          </div>
+          <div class="ro-row"><span class="lbl">扣分处数</span><span class="num">0</span></div>
+        </div>
+      </div>
+
+    </div>
+
+    <div class="bottom-bar">
+      <button class="btn btn-ghost">下载报告</button>
+      <button class="btn btn-primary" style="flex:1;">关闭</button>
+    </div>
+  </div>
+
+  <!-- 页面 5: 项目经理审核 -->
+  <div class="phone">
+    <div class="statusbar">
+      <span>9:41</span>
+      <span class="icons">●●● 5G ▮▮</span>
+    </div>
+    <div class="navbar">
+      <div class="back">‹</div>
+      <div class="title">项目方审核</div>
+      <div class="save-draft" style="visibility:hidden;">存草稿</div>
+    </div>
+
+    <div class="project-card">
+      <div class="row1">
+        <div class="name">金百合花园 · 三期</div>
+        <div class="tag">中盘</div>
+      </div>
+      <div class="meta">
+        <span>检查员 张明</span>
+        <span>2026-05-08</span>
+      </div>
+    </div>
+
+    <!-- 状态条 -->
+    <div class="detail-status proj">
+      <div class="st-icon">📋</div>
+      <div class="body">
+        <div class="st-label">待您确认</div>
+        <div class="st-meta">总部已审核 · 请于 3 日内反馈</div>
+      </div>
+      <div class="st-score">
+        <div class="v">82.3<span style="font-size:13px;opacity:0.6;">%</span></div>
+        <div class="l">最终得分率</div>
+      </div>
+    </div>
+
+    <div class="tabs">
+      <div class="tab">红线问题<span class="badge">2</span></div>
+      <div class="tab active">评分概览</div>
+      <div class="tab">审核</div>
+    </div>
+
+    <div class="content">
+
+      <!-- 模块得分概览 -->
+      <div class="score-overview">
+        <div class="total">
+          <div class="lbl">最终总得分率（含红线倒扣 5 分）</div>
+          <div class="num" style="color:var(--warning);">82.3<small>%</small></div>
+        </div>
+        <div class="modules">
+          <div class="module-cell">
+            <div class="nm">环境卫生 30%</div>
+            <div class="v">88.5%<small>· 14 项</small></div>
+          </div>
+          <div class="module-cell">
+            <div class="nm">安全管理 15%</div>
+            <div class="v" style="color:var(--success);">92.0%<small>· 17 项</small></div>
+          </div>
+          <div class="module-cell">
+            <div class="nm">设施设备 20%</div>
+            <div class="v">85.2%<small>· 16 项</small></div>
+          </div>
+          <div class="module-cell">
+            <div class="nm">绿化养护 15%</div>
+            <div class="v" style="color:var(--success);">90.0%<small>· 6 项</small></div>
+          </div>
+          <div class="module-cell" style="grid-column:1 / -1;">
+            <div class="nm">客户服务 20%</div>
+            <div class="v" style="color:var(--warning);">81.7%<small>· 15 项</small></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 主要扣分项 -->
+      <div style="font-size:13px;color:var(--text-2);font-weight:600;padding:0 4px 8px;">主要扣分项（共 12 项）</div>
+
+      <div class="ro-score-item deducted">
+        <div class="head">
+          <span class="code">A1</span>
+          <span class="mod">环境卫生</span>
+          <span class="w">权重 5%</span>
+        </div>
+        <div class="nm">垃圾桶无外溢</div>
+        <div class="ro-stats">
+          <div class="ro-stat">
+            <div class="l">扣分处数</div>
+            <div class="v warn">2</div>
+          </div>
+          <div class="ro-stat">
+            <div class="l">本项得分率</div>
+            <div class="v warn">77.8%</div>
+          </div>
+        </div>
+        <div class="ro-explain">3 号楼东侧垃圾桶外溢,周边散落垃圾袋约 0.5m³。</div>
+      </div>
+
+      <div class="ro-score-item deducted">
+        <div class="head">
+          <span class="code">A5</span>
+          <span class="mod">环境卫生</span>
+          <span class="w">权重 10%</span>
+        </div>
+        <div class="nm">小区周边无漂浮垃圾</div>
+        <div class="ro-stats">
+          <div class="ro-stat">
+            <div class="l">扣分处数</div>
+            <div class="v warn">5</div>
+          </div>
+          <div class="ro-stat">
+            <div class="l">本项得分率</div>
+            <div class="v warn">89.5%</div>
+          </div>
+        </div>
+        <div class="ro-explain">小区西门外绿化带漂浮垃圾 5 处,主要为塑料袋、烟盒。</div>
+      </div>
+
+      <div class="ro-score-item deducted">
+        <div class="head">
+          <span class="code">B1</span>
+          <span class="mod" style="background:#fff2e8;color:#d46b08;">安全管理</span>
+          <span class="w">权重 8%</span>
+        </div>
+        <div class="nm">消防设施完好率</div>
+        <div class="ro-stats">
+          <div class="ro-stat">
+            <div class="l">扣分处数</div>
+            <div class="v warn">1</div>
+          </div>
+          <div class="ro-stat">
+            <div class="l">本项得分率</div>
+            <div class="v warn">75.0%</div>
+          </div>
+        </div>
+        <div class="ro-explain">B 区地库灭火器 1 处压力表读数偏低,需更换。</div>
+      </div>
+
+      <div class="ro-score-item deducted">
+        <div class="head">
+          <span class="code">E1</span>
+          <span class="mod" style="background:#fff0f6;color:#c41d7f;">客户服务</span>
+          <span class="w">权重 5%</span>
+        </div>
+        <div class="nm">客服中心规范</div>
+        <div class="ro-stats">
+          <div class="ro-stat">
+            <div class="l">扣分处数</div>
+            <div class="v warn">1</div>
+          </div>
+          <div class="ro-stat">
+            <div class="l">本项得分率</div>
+            <div class="v warn">66.7%</div>
+          </div>
+        </div>
+        <div class="ro-explain">前台电话响铃 5 声未接,接待用语未做标准问候。</div>
+      </div>
+
+    </div>
+
+    <div class="bottom-bar">
+      <button class="btn" style="flex:1;height:44px;border-radius:8px;border:1px solid var(--danger);background:#fff;color:var(--danger);font-size:15px;font-weight:500;">提出异议</button>
+      <button class="btn btn-primary" style="flex:1;background:var(--success);">确认通过</button>
+    </div>
+  </div>
+
 </div>
 
 <div class="preview-tip" style="text-align:center;padding:16px;color:#999;font-size:12px;">
-  原型预览 · 红线问题填写 / 评分表填写 / 提交确认 三屏 · 可在手机宽度（≤480px）下查看真实效果
+  原型预览 · 登录 / 首页 / 选择项目 / 红线问题 / 评分表 / 提交确认 / 检查详情 / 项目方审核 八屏 · 可在手机宽度（≤480px）下查看真实效果
 </div>
 
 <script>
@@ -2477,6 +2844,16 @@
 
   // 检查类型切换
   document.querySelectorAll('.type-card .opts').forEach(o => {
+    o.querySelectorAll('.opt').forEach(opt => {
+      opt.addEventListener('click', () => {
+        o.querySelectorAll('.opt').forEach(x => x.classList.remove('active'));
+        opt.classList.add('active');
+      });
+    });
+  });
+
+  // 审核意见切换
+  document.querySelectorAll('.review-card .opts').forEach(o => {
     o.querySelectorAll('.opt').forEach(opt => {
       opt.addEventListener('click', () => {
         o.querySelectorAll('.opt').forEach(x => x.classList.remove('active'));
