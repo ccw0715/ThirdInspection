@@ -1,0 +1,2510 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+<title>第三方品质检查 · 上报</title>
+<style>
+  :root {
+    --primary: #1677ff;
+    --primary-dark: #0958d9;
+    --danger: #d9363e;
+    --danger-bg: #fff1f0;
+    --success: #52c41a;
+    --warning: #faad14;
+    --text: #1f1f1f;
+    --text-2: #595959;
+    --text-3: #8c8c8c;
+    --border: #e8e8e8;
+    --border-2: #f0f0f0;
+    --bg: #f5f6f8;
+    --bg-card: #ffffff;
+    --radius: 10px;
+    --safe-bottom: env(safe-area-inset-bottom);
+  }
+
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Helvetica Neue", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    font-size: 14px;
+    line-height: 1.5;
+  }
+
+  /* 设计稿外层 - 模拟手机 */
+  .stage {
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    background: #eceff3;
+    padding: 24px 0;
+  }
+  .phone {
+    width: 100%;
+    max-width: 420px;
+    background: var(--bg);
+    min-height: calc(100vh - 48px);
+    border-radius: 24px;
+    box-shadow: 0 12px 48px rgba(0,0,0,0.12);
+    overflow: hidden;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+  }
+  @media (max-width: 480px) {
+    .stage { padding: 0; background: var(--bg); }
+    .phone { border-radius: 0; box-shadow: none; max-width: 100%; min-height: 100vh; }
+  }
+
+  /* 顶部状态栏 */
+  .statusbar {
+    height: 28px;
+    background: #fff;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 18px;
+    font-size: 12px;
+    font-weight: 600;
+    color: #1f1f1f;
+  }
+  .statusbar .icons { display: flex; gap: 4px; align-items: center; }
+
+  /* 导航栏 */
+  .navbar {
+    background: #fff;
+    padding: 10px 16px 12px;
+    border-bottom: 1px solid var(--border-2);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+  }
+  .navbar .back {
+    width: 28px; height: 28px;
+    display: flex; align-items: center; justify-content: center;
+    color: var(--text-2);
+    font-size: 18px;
+  }
+  .navbar .title {
+    font-size: 17px;
+    font-weight: 600;
+    flex: 1;
+  }
+  .navbar .save-draft {
+    color: var(--primary);
+    font-size: 13px;
+  }
+
+  /* 项目卡片 */
+  .project-card {
+    margin: 12px;
+    padding: 14px;
+    background: linear-gradient(135deg, #1677ff 0%, #0958d9 100%);
+    border-radius: var(--radius);
+    color: #fff;
+  }
+  .project-card .row1 { display: flex; justify-content: space-between; align-items: center; }
+  .project-card .name { font-size: 16px; font-weight: 600; }
+  .project-card .tag {
+    background: rgba(255,255,255,0.2);
+    border-radius: 4px;
+    padding: 2px 8px;
+    font-size: 11px;
+  }
+  .project-card .meta { display: flex; gap: 14px; margin-top: 10px; font-size: 12px; opacity: 0.9; }
+  .project-card .meta span::before { content: '· '; opacity: 0.5; }
+  .project-card .meta span:first-child::before { content: ''; }
+
+  /* 进度指示 */
+  .progress-bar {
+    background: #fff;
+    margin: 0 12px 12px;
+    border-radius: var(--radius);
+    padding: 10px 14px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 12px;
+  }
+  .progress-bar .pct {
+    color: var(--primary);
+    font-weight: 600;
+    font-size: 13px;
+  }
+  .progress-bar .track {
+    flex: 1;
+    height: 6px;
+    background: var(--border-2);
+    border-radius: 3px;
+    overflow: hidden;
+  }
+  .progress-bar .fill {
+    height: 100%;
+    width: 38%;
+    background: linear-gradient(90deg, #1677ff, #52c41a);
+    border-radius: 3px;
+  }
+
+  /* Tab 切换 */
+  .tabs {
+    display: flex;
+    background: #fff;
+    margin: 0 12px 12px;
+    border-radius: var(--radius);
+    padding: 4px;
+    gap: 4px;
+  }
+  .tabs .tab {
+    flex: 1;
+    text-align: center;
+    padding: 9px 0;
+    border-radius: 7px;
+    font-size: 13px;
+    color: var(--text-2);
+    position: relative;
+  }
+  .tabs .tab.active {
+    background: var(--primary);
+    color: #fff;
+    font-weight: 500;
+  }
+  .tabs .tab .badge {
+    position: absolute;
+    top: 4px;
+    right: 8px;
+    background: var(--danger);
+    color: #fff;
+    font-size: 10px;
+    border-radius: 8px;
+    min-width: 14px;
+    height: 14px;
+    line-height: 14px;
+    padding: 0 4px;
+  }
+  .tabs .tab.active .badge { background: #fff; color: var(--primary); }
+
+  /* 内容区 */
+  .content {
+    flex: 1;
+    padding: 0 12px 100px;
+    overflow-y: auto;
+  }
+
+  /* 红线问题汇总条 */
+  .summary-strip {
+    background: var(--danger-bg);
+    border: 1px solid #ffccc7;
+    border-radius: var(--radius);
+    padding: 12px 14px;
+    margin-bottom: 12px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .summary-strip .left .lbl {
+    color: var(--danger);
+    font-weight: 600;
+    font-size: 13px;
+    margin-bottom: 2px;
+  }
+  .summary-strip .left .desc {
+    color: #ad2a32;
+    font-size: 11px;
+  }
+  .summary-strip .right .num {
+    color: var(--danger);
+    font-size: 22px;
+    font-weight: 700;
+    text-align: right;
+    line-height: 1;
+  }
+  .summary-strip .right .unit {
+    color: var(--danger);
+    font-size: 11px;
+    text-align: right;
+    margin-top: 2px;
+  }
+
+  /* 分类概览卡片 */
+  .cat-overview {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+    margin-bottom: 12px;
+  }
+  .cat-card {
+    background: #fff;
+    border-radius: var(--radius);
+    padding: 12px 10px;
+    text-align: center;
+    position: relative;
+    border: 2px solid transparent;
+  }
+  .cat-card.active {
+    border-color: var(--primary);
+  }
+  .cat-card .ic {
+    width: 32px; height: 32px;
+    border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    color: #fff; font-size: 15px; font-weight: 600;
+    margin: 0 auto 6px;
+  }
+  .cat-card .ic.c1 { background: #ff4d4f; }
+  .cat-card .ic.c2 { background: #fa8c16; }
+  .cat-card .ic.c3 { background: #13c2c2; }
+  .cat-card .ic.c4 { background: #722ed1; }
+  .cat-card .ic.c5 { background: #8c8c8c; }
+  .cat-card .nm {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text);
+    margin-bottom: 2px;
+  }
+  .cat-card .progress {
+    font-size: 11px;
+    color: var(--text-3);
+  }
+  .cat-card .progress em {
+    font-style: normal;
+    color: var(--danger);
+    font-weight: 600;
+  }
+  .cat-card .progress.ok em { color: var(--success); }
+  .cat-card .badge-dot {
+    position: absolute;
+    top: 8px; right: 8px;
+    width: 8px; height: 8px;
+    background: var(--danger);
+    border-radius: 50%;
+  }
+
+  /* 类别分组 */
+  .group {
+    background: #fff;
+    border-radius: var(--radius);
+    margin-bottom: 12px;
+    overflow: hidden;
+  }
+  .group-header {
+    display: flex;
+    align-items: center;
+    padding: 14px 14px 10px;
+  }
+  .group-header .icon {
+    width: 32px; height: 32px;
+    border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    color: #fff; font-size: 15px; font-weight: 600;
+    margin-right: 10px;
+  }
+  .group-header .icon.c1 { background: #ff4d4f; }
+  .group-header .icon.c2 { background: #fa8c16; }
+  .group-header .icon.c3 { background: #13c2c2; }
+  .group-header .icon.c4 { background: #722ed1; }
+  .group-header .icon.c5 { background: #8c8c8c; }
+  .group-header .name { flex: 1; font-weight: 700; font-size: 16px; color: var(--text); }
+  .group-header .count {
+    color: var(--text-3);
+    font-size: 12px;
+  }
+  .group-header .count em {
+    font-style: normal;
+    color: var(--danger);
+    font-weight: 600;
+  }
+
+  /* 红线问题项 */
+  .redline-item {
+    padding: 14px;
+    border-top: 1px solid var(--border-2);
+  }
+  .redline-item .top {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    margin-bottom: 10px;
+  }
+  .redline-item .idx {
+    flex-shrink: 0;
+    width: 24px; height: 24px;
+    background: var(--bg);
+    border-radius: 6px;
+    text-align: center;
+    line-height: 24px;
+    font-size: 12px;
+    color: var(--text-2);
+    font-weight: 600;
+  }
+  .redline-item .body { flex: 1; min-width: 0; }
+  .redline-item .r-title {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--text);
+    line-height: 1.4;
+    margin-bottom: 6px;
+  }
+  .redline-item .r-desc {
+    font-size: 12px;
+    color: var(--text-3);
+    line-height: 1.55;
+  }
+  .redline-item .r-note {
+    color: var(--text-3);
+    font-size: 11px;
+    margin-top: 6px;
+    background: var(--bg);
+    padding: 6px 8px;
+    border-radius: 6px;
+    line-height: 1.5;
+  }
+  .redline-item .r-note b { color: var(--warning); font-weight: 600; }
+
+  .redline-item .actions {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-top: 10px;
+  }
+  .stepper {
+    display: flex;
+    align-items: center;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    overflow: hidden;
+    background: #fff;
+  }
+  .stepper button {
+    width: 36px; height: 36px;
+    border: none;
+    background: #fafafa;
+    color: var(--text-2);
+    font-size: 18px;
+    font-weight: 600;
+  }
+  .stepper button:active { background: var(--border); }
+  .stepper input {
+    width: 52px;
+    height: 36px;
+    border: none;
+    border-left: 1px solid var(--border);
+    border-right: 1px solid var(--border);
+    text-align: center;
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--text);
+    -moz-appearance: textfield;
+  }
+  .stepper input::-webkit-outer-spin-button,
+  .stepper input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+
+  .upload-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    height: 30px;
+    padding: 0 10px;
+    border: 1px dashed var(--border);
+    border-radius: 6px;
+    color: var(--text-3);
+    font-size: 12px;
+    background: #fff;
+  }
+  .upload-btn .ic { font-size: 14px; }
+
+  .triggered-tag {
+    margin-left: auto;
+    background: var(--danger-bg);
+    color: var(--danger);
+    border: 1px solid #ffccc7;
+    border-radius: 4px;
+    padding: 2px 6px;
+    font-size: 11px;
+    font-weight: 600;
+  }
+  .triggered-tag.ok {
+    background: #f6ffed;
+    color: var(--success);
+    border-color: #b7eb8f;
+  }
+
+  /* 评分表 */
+  .score-overview {
+    background: #fff;
+    border-radius: var(--radius);
+    padding: 14px;
+    margin-bottom: 12px;
+  }
+  .score-overview .total {
+    text-align: center;
+    padding: 10px 0 12px;
+    border-bottom: 1px dashed var(--border-2);
+  }
+  .score-overview .total .lbl { color: var(--text-3); font-size: 12px; }
+  .score-overview .total .num {
+    color: var(--primary);
+    font-size: 36px;
+    font-weight: 700;
+    line-height: 1.2;
+    font-family: -apple-system, "SF Pro Display", sans-serif;
+  }
+  .score-overview .total .num small { font-size: 14px; opacity: 0.6; }
+  .score-overview .modules {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    padding-top: 12px;
+  }
+  .score-overview .module-cell {
+    background: var(--bg);
+    border-radius: 8px;
+    padding: 8px 10px;
+  }
+  .score-overview .module-cell .nm { color: var(--text-2); font-size: 12px; }
+  .score-overview .module-cell .v { color: var(--text); font-size: 16px; font-weight: 600; margin-top: 2px; }
+  .score-overview .module-cell .v small { font-size: 11px; color: var(--text-3); font-weight: normal; margin-left: 4px; }
+
+  /* 模块筛选 */
+  .module-filter {
+    display: flex;
+    gap: 8px;
+    overflow-x: auto;
+    padding: 4px 0 8px;
+    margin-bottom: 8px;
+    -webkit-overflow-scrolling: touch;
+  }
+  .module-filter::-webkit-scrollbar { display: none; }
+  .module-filter .chip {
+    flex-shrink: 0;
+    background: #fff;
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 5px 12px;
+    font-size: 12px;
+    color: var(--text-2);
+  }
+  .module-filter .chip.active {
+    background: var(--primary);
+    color: #fff;
+    border-color: var(--primary);
+  }
+  .module-filter .chip .num {
+    margin-left: 4px;
+    opacity: 0.6;
+    font-size: 11px;
+  }
+
+  /* 评分项卡片 */
+  .score-item {
+    background: #fff;
+    border-radius: var(--radius);
+    padding: 12px 14px;
+    margin-bottom: 10px;
+  }
+  .score-item .head {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 8px;
+  }
+  .score-item .code {
+    background: #e6f4ff;
+    color: var(--primary);
+    border-radius: 4px;
+    padding: 2px 6px;
+    font-size: 11px;
+    font-weight: 600;
+  }
+  .score-item .module-tag {
+    background: #f0f5ff;
+    color: #4096ff;
+    border-radius: 4px;
+    padding: 2px 6px;
+    font-size: 11px;
+  }
+  .score-item .weight {
+    margin-left: auto;
+    color: var(--text-3);
+    font-size: 11px;
+  }
+  .score-item .ind-name {
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--text);
+    margin-bottom: 8px;
+    line-height: 1.4;
+  }
+  .score-item .ind-desc {
+    background: var(--bg);
+    border-radius: 6px;
+    padding: 8px 10px;
+    font-size: 12px;
+    color: var(--text-3);
+    line-height: 1.6;
+    margin-bottom: 12px;
+  }
+  .score-item .ind-desc .lab {
+    color: var(--text-3);
+    margin-right: 4px;
+  }
+  .score-item .ind-desc .rule {
+    color: var(--warning);
+    font-size: 11px;
+    margin-top: 4px;
+    display: block;
+  }
+  .score-item .form-row .lbl {
+    font-size: 14px;
+    color: var(--text);
+    font-weight: 500;
+  }
+
+  .score-item .form-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 10px;
+  }
+  .score-item .form-row .lbl {
+    width: 70px;
+    font-size: 13px;
+    color: var(--text-2);
+  }
+  .score-item .form-row .val {
+    flex: 1;
+    text-align: right;
+    color: var(--text);
+    font-size: 13px;
+  }
+  .score-item textarea,
+  .redline-item textarea {
+    width: 100%;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 8px 10px;
+    font-size: 13px;
+    color: var(--text);
+    font-family: inherit;
+    resize: none;
+    min-height: 56px;
+    box-sizing: border-box;
+    margin-top: 4px;
+  }
+  .score-item textarea:focus,
+  .redline-item textarea:focus {
+    outline: none;
+    border-color: var(--primary);
+  }
+  .redline-item .photos { margin-top: 10px; }
+  .photos {
+    display: flex;
+    gap: 8px;
+    margin-top: 10px;
+    flex-wrap: wrap;
+  }
+  .photo, .photo-add {
+    width: 64px; height: 64px;
+    border-radius: 6px;
+    flex-shrink: 0;
+  }
+  .photo {
+    background: #f0f0f0 url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64"><rect width="64" height="64" fill="%23d9d9d9"/><circle cx="22" cy="22" r="6" fill="%23bfbfbf"/><polygon points="10,54 28,32 42,46 56,28 56,54" fill="%23bfbfbf"/></svg>') center/cover no-repeat;
+    position: relative;
+  }
+  .photo .x {
+    position: absolute;
+    top: 2px; right: 2px;
+    width: 16px; height: 16px;
+    background: rgba(0,0,0,0.5);
+    color: #fff;
+    border-radius: 50%;
+    font-size: 12px;
+    line-height: 16px;
+    text-align: center;
+  }
+  .photo-add {
+    border: 1px dashed var(--border);
+    color: var(--text-3);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+    background: #fafafa;
+  }
+  .photo-add .ic { font-size: 22px; line-height: 1; margin-bottom: 2px; }
+
+  .score-item.deducted { border-left: 3px solid var(--warning); }
+
+  /* 底部操作栏 */
+  .bottom-bar {
+    position: fixed;
+    bottom: 0;
+    left: 0; right: 0;
+    background: #fff;
+    border-top: 1px solid var(--border-2);
+    padding: 10px 12px calc(10px + var(--safe-bottom));
+    display: flex;
+    gap: 10px;
+    z-index: 50;
+    max-width: 420px;
+    margin: 0 auto;
+  }
+  @media (min-width: 481px) {
+    .bottom-bar {
+      position: sticky;
+      bottom: 0;
+      border-radius: 0 0 24px 24px;
+    }
+  }
+  .bottom-bar .btn {
+    flex: 1;
+    height: 44px;
+    border-radius: 8px;
+    border: none;
+    font-size: 15px;
+    font-weight: 500;
+  }
+  .bottom-bar .btn-ghost {
+    background: var(--bg);
+    color: var(--text-2);
+    flex: 0 0 96px;
+  }
+  .bottom-bar .btn-primary {
+    background: var(--primary);
+    color: #fff;
+  }
+  .bottom-bar .btn-primary:active { background: var(--primary-dark); }
+
+  /* 提示 */
+  .empty-tip {
+    text-align: center;
+    padding: 40px 0;
+    color: var(--text-3);
+    font-size: 13px;
+  }
+
+  /* 显示模式切换 - 多页签预览 */
+  .preview-tip {
+    text-align: center;
+    color: var(--text-3);
+    font-size: 12px;
+    padding: 8px 0 12px;
+  }
+
+  /* 登录页 */
+  .login-wrap {
+    flex: 1;
+    background: linear-gradient(180deg, #1677ff 0%, #0958d9 100%);
+    color: #fff;
+    padding: 0 20px 20px;
+    display: flex;
+    flex-direction: column;
+  }
+  .login-brand {
+    text-align: center;
+    padding: 50px 0 36px;
+  }
+  .login-brand .logo-box {
+    width: 64px; height: 64px;
+    background: rgba(255,255,255,0.18);
+    border-radius: 16px;
+    margin: 0 auto 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 32px;
+    backdrop-filter: blur(10px);
+  }
+  .login-brand .app-name {
+    font-size: 22px;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+  }
+  .login-brand .app-tip {
+    font-size: 13px;
+    opacity: 0.7;
+    margin-top: 6px;
+  }
+  .login-card {
+    background: #fff;
+    border-radius: 14px;
+    padding: 24px 18px;
+    color: var(--text);
+    margin-top: 20px;
+  }
+  .login-card .title {
+    font-size: 18px;
+    font-weight: 600;
+    margin-bottom: 4px;
+    color: var(--text);
+  }
+  .login-card .subtitle {
+    font-size: 12px;
+    color: var(--text-3);
+    margin-bottom: 20px;
+  }
+  .login-field {
+    border-bottom: 1px solid var(--border-2);
+    padding: 12px 0;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .login-field .ic {
+    width: 20px;
+    text-align: center;
+    color: var(--text-3);
+    font-size: 16px;
+  }
+  .login-field input {
+    flex: 1;
+    border: none;
+    outline: none;
+    font-size: 15px;
+    color: var(--text);
+    background: transparent;
+    font-family: inherit;
+  }
+  .login-field input::placeholder { color: var(--text-3); }
+  .login-field .toggle {
+    color: var(--text-3);
+    font-size: 13px;
+  }
+  .login-actions {
+    margin-top: 24px;
+  }
+  .login-btn {
+    width: 100%;
+    height: 46px;
+    background: var(--primary);
+    border: none;
+    color: #fff;
+    border-radius: 10px;
+    font-size: 16px;
+    font-weight: 500;
+  }
+  .login-btn:active { background: var(--primary-dark); }
+  .login-row {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 14px;
+    font-size: 12px;
+    color: var(--text-3);
+  }
+  .login-row a { color: var(--primary); }
+  .login-agree {
+    text-align: center;
+    color: rgba(255,255,255,0.6);
+    font-size: 11px;
+    margin-top: auto;
+    padding-top: 30px;
+  }
+  .login-agree a { color: rgba(255,255,255,0.85); }
+
+  /* 首页 */
+  .home-header {
+    background: linear-gradient(180deg, #1677ff 0%, #0958d9 100%);
+    color: #fff;
+    padding: 16px;
+    padding-bottom: 56px;
+  }
+  .home-greet {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .home-greet .avatar {
+    width: 40px; height: 40px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.25);
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 600;
+    font-size: 15px;
+  }
+  .home-greet .who .name {
+    font-size: 15px;
+    font-weight: 600;
+  }
+  .home-greet .who .role {
+    font-size: 12px;
+    opacity: 0.75;
+    margin-top: 2px;
+  }
+  .home-greet .bell {
+    margin-left: auto;
+    font-size: 18px;
+    position: relative;
+  }
+  .home-greet .bell::after {
+    content: '';
+    position: absolute;
+    top: 0; right: 0;
+    width: 6px; height: 6px;
+    background: #ff4d4f;
+    border-radius: 50%;
+  }
+  .home-stats {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    margin-top: 18px;
+    text-align: center;
+  }
+  .home-stats .cell .v {
+    font-size: 22px;
+    font-weight: 700;
+    line-height: 1.1;
+  }
+  .home-stats .cell .l {
+    font-size: 11px;
+    opacity: 0.75;
+    margin-top: 4px;
+  }
+  .home-stats .cell + .cell {
+    border-left: 1px solid rgba(255,255,255,0.2);
+  }
+
+  .home-content {
+    margin-top: -40px;
+    padding: 0 12px 90px;
+  }
+  .home-actions {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin-bottom: 14px;
+  }
+  .home-action {
+    background: #fff;
+    border-radius: var(--radius);
+    padding: 16px 14px;
+    box-shadow: 0 4px 14px rgba(0,0,0,0.04);
+    position: relative;
+    overflow: hidden;
+  }
+  .home-action.primary {
+    background: linear-gradient(135deg, #1677ff 0%, #4096ff 100%);
+    color: #fff;
+  }
+  .home-action .ic {
+    width: 36px; height: 36px;
+    border-radius: 8px;
+    background: var(--primary-light, #e6f4ff);
+    color: var(--primary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    margin-bottom: 10px;
+  }
+  .home-action.primary .ic {
+    background: rgba(255,255,255,0.2);
+    color: #fff;
+  }
+  .home-action .nm {
+    font-size: 15px;
+    font-weight: 600;
+  }
+  .home-action .ds {
+    font-size: 11px;
+    opacity: 0.75;
+    margin-top: 2px;
+  }
+  .home-action .arrow {
+    position: absolute;
+    top: 14px; right: 14px;
+    font-size: 14px;
+    opacity: 0.5;
+  }
+
+  .home-section {
+    background: #fff;
+    border-radius: var(--radius);
+    margin-bottom: 12px;
+    overflow: hidden;
+  }
+  .home-section .sec-head {
+    padding: 14px;
+    display: flex;
+    align-items: center;
+    border-bottom: 1px solid var(--border-2);
+  }
+  .home-section .sec-head .nm {
+    font-size: 14px;
+    font-weight: 600;
+  }
+  .home-section .sec-head .more {
+    margin-left: auto;
+    font-size: 12px;
+    color: var(--text-3);
+  }
+
+  .history-item {
+    padding: 14px;
+    border-bottom: 1px solid var(--border-2);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .history-item:last-child { border-bottom: none; }
+  .history-item .h-icon {
+    width: 38px; height: 38px;
+    border-radius: 8px;
+    background: linear-gradient(135deg, #91caff, #4096ff);
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    font-weight: 600;
+    flex-shrink: 0;
+  }
+  .history-item .h-icon.g { background: linear-gradient(135deg, #b7eb8f, #52c41a); }
+  .history-item .h-icon.o { background: linear-gradient(135deg, #ffd591, #fa8c16); }
+  .history-item .body { flex: 1; min-width: 0; }
+  .history-item .nm {
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--text);
+    margin-bottom: 4px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .history-item .meta {
+    font-size: 12px;
+    color: var(--text-3);
+    display: flex;
+    gap: 8px;
+  }
+  .history-item .meta .sp::before {
+    content: '·';
+    margin-right: 8px;
+    color: var(--text-4, #d9d9d9);
+  }
+  .history-item .right-cell {
+    text-align: right;
+    flex-shrink: 0;
+  }
+  .history-item .score {
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--primary);
+  }
+  .history-item .score.warn { color: var(--warning); }
+  .history-item .score.danger { color: var(--danger); }
+  .history-item .stat {
+    font-size: 11px;
+    color: var(--text-3);
+    margin-top: 2px;
+  }
+  .history-item .stat.draft { color: var(--warning); }
+
+  /* 底部 Tab Bar */
+  .tabbar {
+    position: absolute;
+    bottom: 0; left: 0; right: 0;
+    height: 56px;
+    background: #fff;
+    border-top: 1px solid var(--border-2);
+    display: flex;
+    padding-bottom: var(--safe-bottom);
+  }
+  .tabbar .tab-item {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    color: var(--text-3);
+    font-size: 11px;
+  }
+  .tabbar .tab-item .ic {
+    font-size: 20px;
+    line-height: 1;
+    margin-bottom: 2px;
+  }
+  .tabbar .tab-item.active { color: var(--primary); }
+
+  /* 检查详情/审核 — 顶部状态条 */
+  .detail-status {
+    background: #fff;
+    border-radius: var(--radius);
+    padding: 14px;
+    margin: 0 12px 12px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .detail-status .st-icon {
+    width: 40px; height: 40px;
+    border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 18px;
+    flex-shrink: 0;
+  }
+  .detail-status.hq .st-icon { background: #e6f4ff; color: var(--primary); }
+  .detail-status.proj .st-icon { background: #fff7e6; color: var(--warning); }
+  .detail-status.done .st-icon { background: #f6ffed; color: var(--success); }
+  .detail-status.draft .st-icon { background: #f5f5f5; color: var(--text-3); }
+  .detail-status .body { flex: 1; min-width: 0; }
+  .detail-status .st-label {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text);
+  }
+  .detail-status .st-meta {
+    font-size: 12px;
+    color: var(--text-3);
+    margin-top: 2px;
+  }
+  .detail-status .st-score {
+    text-align: right;
+    flex-shrink: 0;
+  }
+  .detail-status .st-score .v {
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--warning);
+    line-height: 1;
+  }
+  .detail-status .st-score .l {
+    font-size: 11px;
+    color: var(--text-3);
+    margin-top: 2px;
+  }
+
+  /* 详情中只读条目 */
+  .ro-redline-item {
+    padding: 14px;
+    border-top: 1px solid var(--border-2);
+  }
+  .ro-redline-item .top {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 8px;
+  }
+  .ro-redline-item .idx {
+    width: 22px; height: 22px;
+    background: var(--bg);
+    border-radius: 4px;
+    text-align: center;
+    line-height: 22px;
+    font-size: 11px;
+    color: var(--text-2);
+    font-weight: 600;
+    flex-shrink: 0;
+  }
+  .ro-redline-item .body { flex: 1; min-width: 0; }
+  .ro-redline-item .r-title { font-size: 14px; font-weight: 600; color: var(--text); margin-bottom: 4px; }
+  .ro-redline-item .r-desc { font-size: 12px; color: var(--text-3); line-height: 1.55; }
+  .ro-redline-item .badge {
+    flex-shrink: 0;
+    padding: 2px 8px;
+    border-radius: 3px;
+    font-size: 11px;
+    font-weight: 500;
+    align-self: flex-start;
+  }
+  .ro-redline-item .badge.ok {
+    background: #f6ffed;
+    color: var(--success);
+    border: 1px solid #b7eb8f;
+  }
+  .ro-redline-item .badge.bad {
+    background: #fff1f0;
+    color: var(--danger);
+    border: 1px solid #ffccc7;
+  }
+  .ro-redline-item .ro-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding-left: 32px;
+    margin-top: 6px;
+    font-size: 12px;
+  }
+  .ro-redline-item .ro-row .lbl { color: var(--text-3); }
+  .ro-redline-item .ro-row .num {
+    background: var(--bg);
+    border-radius: 4px;
+    padding: 2px 12px;
+    font-weight: 700;
+    color: var(--text);
+  }
+  .ro-redline-item .ro-row .num.bad {
+    background: #fff1f0;
+    color: var(--danger);
+  }
+  .ro-redline-item .ro-content {
+    padding-left: 32px;
+    margin-top: 8px;
+  }
+  .ro-redline-item .ro-content .desc-text {
+    background: var(--bg);
+    border-radius: 6px;
+    padding: 8px 10px;
+    font-size: 13px;
+    color: var(--text-2);
+    line-height: 1.55;
+    margin-bottom: 8px;
+  }
+
+  /* 只读评分项 */
+  .ro-score-item {
+    background: #fff;
+    border-radius: var(--radius);
+    padding: 14px;
+    margin-bottom: 10px;
+  }
+  .ro-score-item.deducted { border-left: 3px solid var(--warning); }
+  .ro-score-item .head {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 6px;
+  }
+  .ro-score-item .code {
+    background: #e6f4ff;
+    color: var(--primary);
+    border-radius: 4px;
+    padding: 2px 6px;
+    font-size: 11px;
+    font-weight: 600;
+  }
+  .ro-score-item .mod {
+    background: #f0f5ff;
+    color: #4096ff;
+    border-radius: 4px;
+    padding: 2px 6px;
+    font-size: 11px;
+  }
+  .ro-score-item .w {
+    margin-left: auto;
+    color: var(--text-3);
+    font-size: 11px;
+  }
+  .ro-score-item .nm {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text);
+    margin-bottom: 8px;
+  }
+  .ro-score-item .ro-stats {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 8px;
+  }
+  .ro-score-item .ro-stat {
+    flex: 1;
+    background: var(--bg);
+    border-radius: 6px;
+    padding: 8px 10px;
+    text-align: center;
+  }
+  .ro-score-item .ro-stat .l { color: var(--text-3); font-size: 11px; }
+  .ro-score-item .ro-stat .v {
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--text);
+    margin-top: 2px;
+  }
+  .ro-score-item .ro-stat .v.green { color: var(--success); }
+  .ro-score-item .ro-stat .v.warn { color: var(--warning); }
+  .ro-score-item .ro-stat .v.bad { color: var(--danger); }
+  .ro-score-item .ro-explain {
+    background: var(--bg);
+    border-radius: 6px;
+    padding: 8px 10px;
+    font-size: 12px;
+    color: var(--text-2);
+    line-height: 1.55;
+    margin-top: 6px;
+  }
+
+  /* 审核操作卡片 */
+  .review-card {
+    background: #fff;
+    border-radius: var(--radius);
+    padding: 14px;
+    margin: 0 12px 12px;
+  }
+  .review-card .title {
+    font-size: 14px;
+    font-weight: 600;
+    margin-bottom: 10px;
+  }
+  .review-card .opts {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin-bottom: 12px;
+  }
+  .review-card .opt {
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 12px;
+    text-align: center;
+    font-size: 13px;
+    color: var(--text-2);
+  }
+  .review-card .opt .ic {
+    font-size: 22px;
+    line-height: 1;
+    margin-bottom: 6px;
+    display: block;
+  }
+  .review-card .opt.confirm.active {
+    border-color: var(--success);
+    background: #f6ffed;
+    color: var(--success);
+    font-weight: 600;
+  }
+  .review-card .opt.dispute.active {
+    border-color: var(--danger);
+    background: #fff1f0;
+    color: var(--danger);
+    font-weight: 600;
+  }
+  .review-card textarea {
+    width: 100%;
+    min-height: 70px;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 8px 10px;
+    font-size: 13px;
+    font-family: inherit;
+    resize: none;
+    outline: none;
+    box-sizing: border-box;
+  }
+  .review-card .sign-row {
+    margin-top: 10px;
+    color: var(--text-3);
+    font-size: 12px;
+    display: flex;
+    justify-content: space-between;
+  }
+  .review-card .sign-row b { color: var(--text); font-weight: 500; }
+
+  /* 操作记录时间线 */
+  .timeline-card {
+    background: #fff;
+    border-radius: var(--radius);
+    padding: 14px;
+    margin: 0 12px 12px;
+  }
+  .timeline-card .title {
+    font-size: 14px;
+    font-weight: 600;
+    margin-bottom: 10px;
+  }
+  .timeline-item {
+    display: flex;
+    gap: 10px;
+    position: relative;
+    padding-bottom: 12px;
+  }
+  .timeline-item::before {
+    content: '';
+    position: absolute;
+    left: 5px; top: 16px; bottom: 0;
+    width: 1px;
+    background: var(--border-2);
+  }
+  .timeline-item:last-child::before { display: none; }
+  .timeline-item .dot {
+    width: 11px; height: 11px;
+    background: var(--primary);
+    border-radius: 50%;
+    margin-top: 4px;
+    flex-shrink: 0;
+    border: 2px solid #fff;
+    box-shadow: 0 0 0 1px var(--primary);
+  }
+  .timeline-item.done .dot {
+    background: var(--success);
+    box-shadow: 0 0 0 1px var(--success);
+  }
+  .timeline-item.pending .dot {
+    background: #fff;
+    box-shadow: 0 0 0 1px var(--border);
+  }
+  .timeline-item .info {
+    flex: 1;
+    font-size: 13px;
+  }
+  .timeline-item .lbl {
+    color: var(--text);
+    font-weight: 500;
+  }
+  .timeline-item.pending .lbl { color: var(--text-3); }
+  .timeline-item .meta {
+    color: var(--text-3);
+    font-size: 11px;
+    margin-top: 2px;
+  }
+
+  /* 项目选择页 - 简化版 */
+  .select-form {
+    background: #fff;
+    border-radius: var(--radius);
+    padding: 18px 16px;
+  }
+  .select-label {
+    display: block;
+    font-size: 13px;
+    color: var(--text-2);
+    margin-bottom: 10px;
+  }
+  .select-label::after {
+    content: ' *';
+    color: var(--danger);
+  }
+  .select-field {
+    display: flex;
+    align-items: center;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 12px 14px;
+    background: #fff;
+  }
+  .select-field .val {
+    flex: 1;
+    font-size: 15px;
+    color: var(--text);
+  }
+  .select-field .val.placeholder { color: var(--text-3); }
+  .select-field .arrow {
+    color: var(--text-3);
+    font-size: 12px;
+    margin-left: 8px;
+  }
+  .select-tip {
+    color: var(--text-3);
+    font-size: 12px;
+    margin-top: 8px;
+  }
+
+  /* 项目选择页（旧版保留） */
+  .search-bar {
+    background: #fff;
+    margin: 12px 12px 0;
+    border-radius: 10px;
+    padding: 8px 12px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .search-bar .ic { color: var(--text-3); font-size: 14px; }
+  .search-bar input {
+    flex: 1;
+    border: none;
+    outline: none;
+    background: transparent;
+    font-size: 13px;
+    color: var(--text);
+  }
+  .search-bar input::placeholder { color: var(--text-3); }
+  .search-bar .scan {
+    color: var(--primary);
+    font-size: 13px;
+    border-left: 1px solid var(--border-2);
+    padding-left: 10px;
+  }
+
+  .filter-chips {
+    display: flex;
+    gap: 8px;
+    overflow-x: auto;
+    padding: 12px;
+    -webkit-overflow-scrolling: touch;
+  }
+  .filter-chips::-webkit-scrollbar { display: none; }
+  .filter-chips .chip {
+    flex-shrink: 0;
+    background: #fff;
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 5px 12px;
+    font-size: 12px;
+    color: var(--text-2);
+  }
+  .filter-chips .chip.active {
+    background: var(--primary);
+    color: #fff;
+    border-color: var(--primary);
+  }
+  .filter-chips .chip .num { margin-left: 4px; opacity: 0.7; font-size: 11px; }
+
+  .project-list { padding: 0 12px; }
+  .project-row {
+    background: #fff;
+    border-radius: var(--radius);
+    padding: 14px;
+    margin-bottom: 10px;
+    display: flex;
+    gap: 12px;
+    align-items: stretch;
+  }
+  .project-row.selected {
+    border: 2px solid var(--primary);
+    padding: 12px;
+  }
+  .project-row .thumb {
+    width: 56px;
+    height: 56px;
+    border-radius: 8px;
+    background: linear-gradient(135deg, #91caff, #4096ff);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+    font-size: 22px;
+    flex-shrink: 0;
+  }
+  .project-row .thumb.g { background: linear-gradient(135deg, #b7eb8f, #52c41a); }
+  .project-row .thumb.o { background: linear-gradient(135deg, #ffd591, #fa8c16); }
+  .project-row .thumb.p { background: linear-gradient(135deg, #d3adf7, #722ed1); }
+  .project-row .info { flex: 1; min-width: 0; }
+  .project-row .name-line {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-bottom: 4px;
+  }
+  .project-row .nm {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--text);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    flex: 1;
+    min-width: 0;
+  }
+  .project-row .scale-tag {
+    background: #e6f4ff;
+    color: var(--primary);
+    border-radius: 4px;
+    padding: 1px 6px;
+    font-size: 10px;
+    font-weight: 500;
+    flex-shrink: 0;
+  }
+  .project-row .meta {
+    color: var(--text-3);
+    font-size: 12px;
+    line-height: 1.6;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .project-row .footer {
+    display: flex;
+    align-items: center;
+    margin-top: 6px;
+    gap: 8px;
+  }
+  .project-row .last-time {
+    color: var(--text-3);
+    font-size: 11px;
+  }
+  .project-row .status {
+    margin-left: auto;
+    font-size: 11px;
+    border-radius: 4px;
+    padding: 2px 6px;
+  }
+  .project-row .status.todo {
+    background: #fff7e6;
+    color: var(--warning);
+  }
+  .project-row .status.doing {
+    background: #e6f4ff;
+    color: var(--primary);
+  }
+  .project-row .status.done {
+    background: #f6ffed;
+    color: var(--success);
+  }
+
+  /* 检查类型确认弹层 */
+  .type-card {
+    background: #fff;
+    border-radius: var(--radius);
+    margin: 0 12px 12px;
+    padding: 14px;
+  }
+  .type-card .lbl {
+    font-size: 13px;
+    font-weight: 600;
+    margin-bottom: 10px;
+  }
+  .type-card .opts { display: flex; gap: 8px; }
+  .type-card .opt {
+    flex: 1;
+    padding: 10px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    text-align: center;
+    font-size: 13px;
+    color: var(--text-2);
+  }
+  .type-card .opt.active {
+    border-color: var(--primary);
+    background: #e6f4ff;
+    color: var(--primary);
+    font-weight: 500;
+  }
+  .type-card .opt .desc {
+    font-size: 11px;
+    color: var(--text-3);
+    margin-top: 2px;
+  }
+  .type-card .opt.active .desc { color: var(--primary); opacity: 0.7; }
+</style>
+</head>
+<body>
+
+<div class="stage">
+
+  <!-- 页面 -1: 登录 -->
+  <div class="phone">
+    <div class="statusbar" style="background:transparent;color:#fff;">
+      <span>9:41</span>
+      <span class="icons">●●● 5G ▮▮</span>
+    </div>
+    <div class="login-wrap">
+      <div class="login-brand">
+        <div class="logo-box">🔍</div>
+        <div class="app-name">第三方品质检查</div>
+        <div class="app-tip">PROPERTY QUALITY INSPECTION</div>
+      </div>
+
+      <div class="login-card">
+        <div class="title">欢迎登录</div>
+        <div class="subtitle">请使用工号或手机号登录</div>
+
+        <div class="login-field">
+          <span class="ic">👤</span>
+          <input type="text" placeholder="请输入工号 / 手机号" value="zhangming" />
+        </div>
+
+        <div class="login-field">
+          <span class="ic">🔒</span>
+          <input type="password" placeholder="请输入密码" value="••••••••" />
+          <span class="toggle">显示</span>
+        </div>
+
+        <div class="login-actions">
+          <button class="login-btn">登 录</button>
+          <div class="login-row">
+            <a>验证码登录</a>
+            <a>忘记密码？</a>
+          </div>
+        </div>
+      </div>
+
+      <div class="login-agree">
+        登录即代表同意 <a>《用户协议》</a> 和 <a>《隐私政策》</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- 页面 0: 首页 -->
+  <div class="phone">
+    <div class="statusbar" style="background:#1677ff;color:#fff;">
+      <span>9:41</span>
+      <span class="icons">●●● 5G ▮▮</span>
+    </div>
+
+    <div class="home-header">
+      <div class="home-greet">
+        <div class="avatar">张</div>
+        <div class="who">
+          <div class="name">你好,张明 👋</div>
+          <div class="role">第三方检查员 · 华南区</div>
+        </div>
+        <span class="bell">🔔</span>
+      </div>
+
+      <div class="home-stats">
+        <div class="cell">
+          <div class="v">12</div>
+          <div class="l">本月已检查</div>
+        </div>
+        <div class="cell">
+          <div class="v">3</div>
+          <div class="l">待提交</div>
+        </div>
+        <div class="cell">
+          <div class="v">88.7%</div>
+          <div class="l">平均得分率</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="home-content">
+
+      <!-- 主操作入口 -->
+      <div class="home-actions">
+        <div class="home-action primary">
+          <span class="arrow">›</span>
+          <div class="ic">＋</div>
+          <div class="nm">新建检查</div>
+          <div class="ds">开始一次现场检查</div>
+        </div>
+        <div class="home-action">
+          <span class="arrow">›</span>
+          <div class="ic">📋</div>
+          <div class="nm">历史记录</div>
+          <div class="ds">查看 / 继续草稿</div>
+        </div>
+      </div>
+
+      <!-- 历史检查记录 -->
+      <div class="home-section">
+        <div class="sec-head">
+          <span class="nm">最近检查记录</span>
+          <span class="more">查看全部 ›</span>
+        </div>
+
+        <div class="history-item">
+          <div class="h-icon">百</div>
+          <div class="body">
+            <div class="nm">金百合花园 · 三期</div>
+            <div class="meta">
+              <span>2026-05-08</span>
+              <span class="sp">中盘</span>
+              <span class="sp">明查</span>
+            </div>
+          </div>
+          <div class="right-cell">
+            <div class="score warn">82.3%</div>
+            <div class="stat draft">草稿中</div>
+          </div>
+        </div>
+
+        <div class="history-item">
+          <div class="h-icon g">翠</div>
+          <div class="body">
+            <div class="nm">翠湖天地花园</div>
+            <div class="meta">
+              <span>2026-05-06</span>
+              <span class="sp">大盘</span>
+              <span class="sp">明查</span>
+            </div>
+          </div>
+          <div class="right-cell">
+            <div class="score">91.2%</div>
+            <div class="stat">已提交</div>
+          </div>
+        </div>
+
+        <div class="history-item">
+          <div class="h-icon o">阳</div>
+          <div class="body">
+            <div class="nm">阳光海岸璟园</div>
+            <div class="meta">
+              <span>2026-05-04</span>
+              <span class="sp">中盘</span>
+              <span class="sp">暗查</span>
+            </div>
+          </div>
+          <div class="right-cell">
+            <div class="score">85.7%</div>
+            <div class="stat">已提交</div>
+          </div>
+        </div>
+
+        <div class="history-item">
+          <div class="h-icon">滨</div>
+          <div class="body">
+            <div class="nm">滨江壹号院</div>
+            <div class="meta">
+              <span>2026-05-02</span>
+              <span class="sp">大盘</span>
+              <span class="sp">明查</span>
+            </div>
+          </div>
+          <div class="right-cell">
+            <div class="score danger">76.4%</div>
+            <div class="stat">已提交</div>
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+
+    <!-- 底部 Tab Bar -->
+    <div class="tabbar">
+      <div class="tab-item active">
+        <span class="ic">🏠</span>
+        <span>首页</span>
+      </div>
+      <div class="tab-item">
+        <span class="ic">📋</span>
+        <span>记录</span>
+      </div>
+      <div class="tab-item">
+        <span class="ic">👤</span>
+        <span>我的</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- 页面 0: 选择检查项目 -->
+  <div class="phone">
+    <div class="statusbar">
+      <span>9:41</span>
+      <span class="icons">●●● 5G ▮▮</span>
+    </div>
+    <div class="navbar">
+      <div class="back">‹</div>
+      <div class="title">选择检查项目</div>
+      <div class="save-draft" style="visibility:hidden;">存草稿</div>
+    </div>
+
+    <div class="content" style="padding-top:20px;">
+
+      <div class="select-form">
+        <label class="select-label">检查项目</label>
+        <div class="select-field">
+          <span class="val">金百合花园 · 三期</span>
+          <span class="arrow">▾</span>
+        </div>
+        <div class="select-tip">请选择本次需要检查的物管项目</div>
+      </div>
+
+    </div>
+
+    <div class="bottom-bar">
+      <button class="btn btn-primary" style="flex:1;">确定</button>
+    </div>
+  </div>
+
+  <!-- 页面 1: 红线问题 -->
+  <div class="phone">
+    <div class="statusbar">
+      <span>9:41</span>
+      <span class="icons">●●● 5G ▮▮</span>
+    </div>
+    <div class="navbar">
+      <div class="back">‹</div>
+      <div class="title">现场检查上报</div>
+      <div class="save-draft">存草稿</div>
+    </div>
+
+    <div class="project-card">
+      <div class="row1">
+        <div class="name">金百合花园 · 三期</div>
+        <div class="tag">中盘</div>
+      </div>
+      <div class="meta">
+        <span>检查员 张明</span>
+        <span>2026/05/07</span>
+      </div>
+    </div>
+
+    <div class="tabs">
+      <div class="tab active">红线问题<span class="badge">2</span></div>
+      <div class="tab">评分表</div>
+    </div>
+
+    <div class="content">
+
+      <!-- 红线提示 -->
+      <div class="summary-strip">
+        <div class="left">
+          <div class="lbl">⚠️ 已触发红线问题</div>
+          <div class="desc">触及红线在项目总分基础上倒扣 5 分</div>
+        </div>
+        <div class="right">
+          <div class="num">-5<small style="font-size:14px;">分</small></div>
+          <div class="unit">2 项已触发</div>
+        </div>
+      </div>
+
+      <!-- 事故安全 -->
+      <div class="group">
+        <div class="group-header">
+          <div class="icon c1">事</div>
+          <div class="name">事故安全</div>
+          <div class="count">已触发 <em>1</em> / 4 项</div>
+        </div>
+
+        <div class="redline-item">
+          <div class="top">
+            <div class="idx">1</div>
+            <div class="body">
+              <div class="r-title">公共区域致人伤亡安全隐患</div>
+              <div class="r-desc">井盖缺失 / 破损面积超过一半、存在 1 处高空坠物风险（灯具、装修物品、水管等固定不牢靠的外挂物）、电线外露无包扎</div>
+              <div class="r-note"><b>说明：</b>处理所需时间较长但已制定有效管控措施及应急预案并落实,可免除扣分。</div>
+            </div>
+          </div>
+          <div class="form-row">
+            <span class="lbl">扣分处数</span>
+            <div style="margin-left:auto;">
+              <div class="stepper"><button>−</button><input type="text" value="0" /><button>+</button></div>
+            </div>
+          </div>
+          <textarea placeholder="扣分说明（选填）"></textarea>
+          <div class="photos">
+            <div class="photo-add"><div class="ic">+</div><div>添加照片</div></div>
+          </div>
+        </div>
+
+        <div class="redline-item">
+          <div class="top">
+            <div class="idx">2</div>
+            <div class="body">
+              <div class="r-title">机房门锁未有效关闭</div>
+              <div class="r-desc">电梯机房 / 水泵房 / 配电室 1 处,或其余机房（不含水电井）3 处及以上</div>
+            </div>
+          </div>
+          <div class="form-row">
+            <span class="lbl">扣分处数</span>
+            <div style="margin-left:auto;">
+              <div class="stepper"><button>−</button><input type="text" value="2" /><button>+</button></div>
+            </div>
+          </div>
+          <textarea placeholder="扣分说明（选填）">2 号楼水泵房门锁未锁,3 号楼配电室门锁松动。</textarea>
+          <div class="photos">
+            <div class="photo"><div class="x">×</div></div>
+            <div class="photo"><div class="x">×</div></div>
+            <div class="photo"><div class="x">×</div></div>
+            <div class="photo-add"><div class="ic">+</div><div>添加照片</div></div>
+          </div>
+        </div>
+
+        <div class="redline-item">
+          <div class="top">
+            <div class="idx">3</div>
+            <div class="body">
+              <div class="r-title">装修监管严重失职</div>
+              <div class="r-desc">私自开工装修 / 有严重消防安全隐患 / 拆改室内外承重结构 / 破坏建筑主体结构等</div>
+            </div>
+          </div>
+          <div class="form-row">
+            <span class="lbl">扣分处数</span>
+            <div style="margin-left:auto;">
+              <div class="stepper"><button>−</button><input type="text" value="0" /><button>+</button></div>
+            </div>
+          </div>
+          <textarea placeholder="扣分说明（选填）"></textarea>
+          <div class="photos">
+            <div class="photo-add"><div class="ic">+</div><div>添加照片</div></div>
+          </div>
+        </div>
+
+        <div class="redline-item">
+          <div class="top">
+            <div class="idx">4</div>
+            <div class="body">
+              <div class="r-title">危险物品管理不当</div>
+              <div class="r-desc">消杀药品管理不清、清洁剂储藏不当、汽油 / 柴油 / 油漆等易燃易爆品管理不当（任 1 处）</div>
+            </div>
+          </div>
+          <div class="form-row">
+            <span class="lbl">扣分处数</span>
+            <div style="margin-left:auto;">
+              <div class="stepper"><button>−</button><input type="text" value="0" /><button>+</button></div>
+            </div>
+          </div>
+          <textarea placeholder="扣分说明（选填）"></textarea>
+          <div class="photos">
+            <div class="photo-add"><div class="ic">+</div><div>添加照片</div></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 消防安全 -->
+      <div class="group">
+        <div class="group-header">
+          <div class="icon c2">消</div>
+          <div class="name">消防安全</div>
+          <div class="count">已触发 <em>1</em> / 4 项</div>
+        </div>
+
+        <div class="redline-item">
+          <div class="top">
+            <div class="idx">5</div>
+            <div class="body">
+              <div class="r-title">消防通道堵塞</div>
+              <div class="r-desc">消防通道被杂物或车辆堵塞不通</div>
+            </div>
+          </div>
+          <div class="form-row">
+            <span class="lbl">扣分处数</span>
+            <div style="margin-left:auto;">
+              <div class="stepper"><button>−</button><input type="text" value="0" /><button>+</button></div>
+            </div>
+          </div>
+          <textarea placeholder="扣分说明（选填）"></textarea>
+          <div class="photos">
+            <div class="photo-add"><div class="ic">+</div><div>添加照片</div></div>
+          </div>
+        </div>
+
+        <div class="redline-item">
+          <div class="top">
+            <div class="idx">6</div>
+            <div class="body">
+              <div class="r-title">电梯中控无人应答</div>
+              <div class="r-desc">1 台电梯中控测试 2 分钟均无人应答</div>
+              <div class="r-note"><b>说明：</b>如已发现问题、已报修且有相应有效管理措施及提醒,可不进行红线扣分。</div>
+            </div>
+          </div>
+          <div class="form-row">
+            <span class="lbl">扣分处数</span>
+            <div style="margin-left:auto;">
+              <div class="stepper"><button>−</button><input type="text" value="0" /><button>+</button></div>
+            </div>
+          </div>
+          <textarea placeholder="扣分说明（选填）"></textarea>
+          <div class="photos">
+            <div class="photo-add"><div class="ic">+</div><div>添加照片</div></div>
+          </div>
+        </div>
+
+        <div class="redline-item">
+          <div class="top">
+            <div class="idx">7</div>
+            <div class="body">
+              <div class="r-title">电动车违规停放 / 飞线充电</div>
+              <div class="r-desc">楼宇内达 3 处及以上电动车停放,或园区（商业街除外）1 处飞线充电</div>
+            </div>
+          </div>
+          <div class="form-row">
+            <span class="lbl">扣分处数</span>
+            <div style="margin-left:auto;">
+              <div class="stepper"><button>−</button><input type="text" value="1" /><button>+</button></div>
+            </div>
+          </div>
+          <textarea placeholder="扣分说明（选填）">A 区 5 栋楼下存在飞线充电现象。</textarea>
+          <div class="photos">
+            <div class="photo"><div class="x">×</div></div>
+            <div class="photo"><div class="x">×</div></div>
+            <div class="photo-add"><div class="ic">+</div><div>添加照片</div></div>
+          </div>
+        </div>
+
+        <div class="redline-item">
+          <div class="top">
+            <div class="idx">8</div>
+            <div class="body">
+              <div class="r-title">消防栓水压不足或无水</div>
+              <div class="r-desc">项目园区、楼栋天面、地库任意 1 处消防栓试水水压不足或无水</div>
+            </div>
+          </div>
+          <div class="form-row">
+            <span class="lbl">扣分处数</span>
+            <div style="margin-left:auto;">
+              <div class="stepper"><button>−</button><input type="text" value="0" /><button>+</button></div>
+            </div>
+          </div>
+          <textarea placeholder="扣分说明（选填）"></textarea>
+          <div class="photos">
+            <div class="photo-add"><div class="ic">+</div><div>添加照片</div></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 清洁卫生 -->
+      <div class="group">
+        <div class="group-header">
+          <div class="icon c3">清</div>
+          <div class="name">清洁卫生</div>
+          <div class="count">已触发 <em>0</em> / 1 项</div>
+        </div>
+        <div class="redline-item">
+          <div class="top">
+            <div class="idx">9</div>
+            <div class="body">
+              <div class="r-title">大量垃圾堆放且有异味</div>
+              <div class="r-desc">园区主干道、休闲活动区域有 1m³ 及以上的垃圾堆放,且有明显异味</div>
+            </div>
+          </div>
+          <div class="form-row">
+            <span class="lbl">扣分处数</span>
+            <div style="margin-left:auto;">
+              <div class="stepper"><button>−</button><input type="text" value="0" /><button>+</button></div>
+            </div>
+          </div>
+          <textarea placeholder="扣分说明（选填）"></textarea>
+          <div class="photos">
+            <div class="photo-add"><div class="ic">+</div><div>添加照片</div></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 人员服务 -->
+      <div class="group">
+        <div class="group-header">
+          <div class="icon c4">服</div>
+          <div class="name">人员服务</div>
+          <div class="count">已触发 <em>0</em> / 2 项</div>
+        </div>
+        <div class="redline-item">
+          <div class="top">
+            <div class="idx">10</div>
+            <div class="body">
+              <div class="r-title">服务人员仪容仪表不规范</div>
+              <div class="r-desc">未着工装（含管理层）,或仪容严重不规范（男士头发过长、女士未着淡妆、言行粗俗等）</div>
+            </div>
+          </div>
+          <div class="form-row">
+            <span class="lbl">扣分处数</span>
+            <div style="margin-left:auto;">
+              <div class="stepper"><button>−</button><input type="text" value="0" /><button>+</button></div>
+            </div>
+          </div>
+          <textarea placeholder="扣分说明（选填）"></textarea>
+          <div class="photos">
+            <div class="photo-add"><div class="ic">+</div><div>添加照片</div></div>
+          </div>
+        </div>
+        <div class="redline-item">
+          <div class="top">
+            <div class="idx">11</div>
+            <div class="body">
+              <div class="r-title">服务态度恶劣 / 辱骂业主</div>
+              <div class="r-desc">人员服务态度恶劣,存在辱骂业主行为</div>
+            </div>
+          </div>
+          <div class="form-row">
+            <span class="lbl">扣分处数</span>
+            <div style="margin-left:auto;">
+              <div class="stepper"><button>−</button><input type="text" value="0" /><button>+</button></div>
+            </div>
+          </div>
+          <textarea placeholder="扣分说明（选填）"></textarea>
+          <div class="photos">
+            <div class="photo-add"><div class="ic">+</div><div>添加照片</div></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 其他 -->
+      <div class="group">
+        <div class="group-header">
+          <div class="icon c5">他</div>
+          <div class="name">其他</div>
+          <div class="count">已触发 <em>0</em> / 1 项</div>
+        </div>
+        <div class="redline-item">
+          <div class="top">
+            <div class="idx">12</div>
+            <div class="body">
+              <div class="r-title">其他严重影响行为</div>
+              <div class="r-desc">其他可能严重影响公司利益或影响客户感受的行为,由总裁办认定</div>
+            </div>
+          </div>
+          <div class="form-row">
+            <span class="lbl">扣分处数</span>
+            <div style="margin-left:auto;">
+              <div class="stepper"><button>−</button><input type="text" value="0" /><button>+</button></div>
+            </div>
+          </div>
+          <textarea placeholder="扣分说明（选填）"></textarea>
+          <div class="photos">
+            <div class="photo-add"><div class="ic">+</div><div>添加照片</div></div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <div class="bottom-bar">
+      <button class="btn btn-primary" style="flex:1;">提交上报</button>
+    </div>
+  </div>
+
+
+  <!-- 页面 2: 评分表 -->
+  <div class="phone">
+    <div class="statusbar">
+      <span>9:41</span>
+      <span class="icons">●●● 5G ▮▮</span>
+    </div>
+    <div class="navbar">
+      <div class="back">‹</div>
+      <div class="title">现场检查上报</div>
+      <div class="save-draft">存草稿</div>
+    </div>
+
+    <div class="project-card">
+      <div class="row1">
+        <div class="name">金百合花园 · 三期</div>
+        <div class="tag">中盘</div>
+      </div>
+      <div class="meta">
+        <span>检查员 张明</span>
+        <span>2026/05/07</span>
+      </div>
+    </div>
+
+    <div class="tabs">
+      <div class="tab">红线问题<span class="badge">2</span></div>
+      <div class="tab active">评分表</div>
+    </div>
+
+    <div class="content">
+
+      <!-- 总览 -->
+      <div class="score-overview">
+        <div class="total">
+          <div class="lbl">当前预估总得分率（含红线倒扣 5 分）</div>
+          <div class="num">87.3<small>%</small></div>
+        </div>
+        <div class="modules">
+          <div class="module-cell">
+            <div class="nm">环境卫生 30%</div>
+            <div class="v">88.5%<small>· 14 项</small></div>
+          </div>
+          <div class="module-cell">
+            <div class="nm">安全管理 15%</div>
+            <div class="v">92.0%<small>· 17 项</small></div>
+          </div>
+          <div class="module-cell">
+            <div class="nm">设施设备 20%</div>
+            <div class="v">85.2%<small>· 16 项</small></div>
+          </div>
+          <div class="module-cell">
+            <div class="nm">绿化养护 15%</div>
+            <div class="v">90.0%<small>· 6 项</small></div>
+          </div>
+          <div class="module-cell" style="grid-column:1 / -1;">
+            <div class="nm">客户服务 20%</div>
+            <div class="v">81.7%<small>· 15 项</small></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 模块筛选 -->
+      <div class="module-filter">
+        <div class="chip active">全部<span class="num">68</span></div>
+        <div class="chip">环境卫生<span class="num">14</span></div>
+        <div class="chip">安全管理<span class="num">17</span></div>
+        <div class="chip">设施设备<span class="num">16</span></div>
+        <div class="chip">绿化养护<span class="num">6</span></div>
+        <div class="chip">客户服务<span class="num">15</span></div>
+      </div>
+
+      <!-- 评分项 1 -->
+      <div class="score-item deducted">
+        <div class="head">
+          <span class="code">A1</span>
+          <span class="module-tag">环境卫生 / 整洁</span>
+          <span class="weight">权重 5%</span>
+        </div>
+        <div class="ind-name">垃圾桶无外溢</div>
+        <div class="ind-desc">
+          <span class="lab">巡视标准：</span>主出入口周边、主要人流动线周边及抽检楼栋,垃圾桶无外溢
+          <span class="rule">扣分规则：0–9 处线性扣分,9 处及以上归 0</span>
+        </div>
+
+        <div class="form-row">
+          <span class="lbl">扣分处数</span>
+          <div style="margin-left:auto;">
+            <div class="stepper">
+              <button>−</button><input value="2" /><button>+</button>
+            </div>
+          </div>
+        </div>
+        <div class="form-row">
+          <span class="lbl">本项得分率</span>
+          <span class="val" style="color:var(--warning);font-weight:600;">77.8%</span>
+        </div>
+
+        <textarea placeholder="扣分说明（必填）...">3 号楼东侧垃圾桶外溢,周边散落垃圾袋约 0.5m³。</textarea>
+
+        <div class="photos">
+          <div class="photo"><div class="x">×</div></div>
+          <div class="photo"><div class="x">×</div></div>
+          <div class="photo-add">
+            <div class="ic">+</div>
+            <div>添加照片</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 评分项 2 -->
+      <div class="score-item">
+        <div class="head">
+          <span class="code">A2</span>
+          <span class="module-tag">环境卫生 / 整洁</span>
+          <span class="weight">权重 5%</span>
+        </div>
+        <div class="ind-name">垃圾桶干净整洁</div>
+        <div class="ind-desc">
+          <span class="lab">巡视标准：</span>垃圾桶外侧干净,无明显污渍
+          <span class="rule">扣分规则：2–9 处线性扣分,9 处及以上归 0</span>
+        </div>
+        <div class="form-row">
+          <span class="lbl">扣分处数</span>
+          <div style="margin-left:auto;">
+            <div class="stepper"><button>−</button><input value="0" /><button>+</button></div>
+          </div>
+        </div>
+        <div class="form-row">
+          <span class="lbl">本项得分率</span>
+          <span class="val" style="color:var(--success);font-weight:600;">100%</span>
+        </div>
+      </div>
+
+      <!-- 评分项 3 -->
+      <div class="score-item">
+        <div class="head">
+          <span class="code">A3</span>
+          <span class="module-tag">环境卫生 / 整洁</span>
+          <span class="weight">权重 5%</span>
+        </div>
+        <div class="ind-name">垃圾桶周边干净整洁</div>
+        <div class="ind-desc">
+          <span class="lab">巡视标准：</span>垃圾桶周边干净,打包垃圾体积不超过 1 立方米
+          <span class="rule">扣分规则：0–6 处线性扣分,6 处及以上归 0</span>
+        </div>
+        <div class="form-row">
+          <span class="lbl">扣分处数</span>
+          <div style="margin-left:auto;">
+            <div class="stepper"><button>−</button><input value="0" /><button>+</button></div>
+          </div>
+        </div>
+        <div class="form-row">
+          <span class="lbl">本项得分率</span>
+          <span class="val" style="color:var(--success);font-weight:600;">100%</span>
+        </div>
+      </div>
+
+      <!-- 评分项 4 -->
+      <div class="score-item deducted">
+        <div class="head">
+          <span class="code">A5</span>
+          <span class="module-tag">环境卫生 / 卫生保洁</span>
+          <span class="weight">权重 10%</span>
+        </div>
+        <div class="ind-name">小区周边无漂浮垃圾</div>
+        <div class="ind-desc">
+          <span class="lab">巡视标准：</span>无漂浮垃圾（含植物悬挂的垃圾、衣服等杂物）;1 平方米内的漂浮垃圾算一处,烟头及小于烟头的垃圾 2 个及以上起算
+          <span class="rule">中盘扣分规则：3–22 处线性扣分,22 处及以上归 0</span>
+        </div>
+        <div class="form-row">
+          <span class="lbl">扣分处数</span>
+          <div style="margin-left:auto;">
+            <div class="stepper"><button>−</button><input value="5" /><button>+</button></div>
+          </div>
+        </div>
+        <div class="form-row">
+          <span class="lbl">本项得分率</span>
+          <span class="val" style="color:var(--warning);font-weight:600;">89.5%</span>
+        </div>
+
+        <textarea placeholder="扣分说明（必填）...">小区西门外绿化带漂浮垃圾 5 处,主要为塑料袋、烟盒。</textarea>
+
+        <div class="photos">
+          <div class="photo"><div class="x">×</div></div>
+          <div class="photo-add"><div class="ic">+</div><div>添加照片</div></div>
+        </div>
+      </div>
+
+      <!-- 提示 -->
+      <div class="empty-tip">— 下拉加载更多评分项 —</div>
+
+    </div>
+
+    <div class="bottom-bar">
+      <button class="btn btn-primary" style="flex:1;">提交上报</button>
+    </div>
+  </div>
+
+  <!-- 页面 3: 提交确认 -->
+  <div class="phone">
+    <div class="statusbar">
+      <span>9:41</span>
+      <span class="icons">●●● 5G ▮▮</span>
+    </div>
+    <div class="navbar">
+      <div class="back">‹</div>
+      <div class="title">提交上报确认</div>
+      <div class="save-draft" style="visibility:hidden;">存草稿</div>
+    </div>
+
+    <div class="content" style="padding-top:12px;">
+
+      <div class="project-card" style="margin:0 0 12px;">
+        <div class="row1">
+          <div class="name">金百合花园 · 三期</div>
+          <div class="tag">中盘</div>
+        </div>
+        <div class="meta">
+          <span>检查员 张明</span>
+          <span>2026/05/07</span>
+          <span>明查</span>
+        </div>
+      </div>
+
+      <!-- 总分卡 -->
+      <div class="score-overview" style="margin:0 0 12px;">
+        <div class="total">
+          <div class="lbl">最终预估总得分率</div>
+          <div class="num" style="color:var(--warning);">82.3<small>%</small></div>
+        </div>
+        <div style="display:flex;justify-content:space-around;padding-top:12px;border-top:1px dashed var(--border-2);text-align:center;">
+          <div>
+            <div style="color:var(--text-3);font-size:11px;">基础得分率</div>
+            <div style="font-size:18px;font-weight:600;color:var(--text);margin-top:4px;">87.3%</div>
+          </div>
+          <div style="color:var(--border);align-self:center;">−</div>
+          <div>
+            <div style="color:var(--text-3);font-size:11px;">红线倒扣</div>
+            <div style="font-size:18px;font-weight:600;color:var(--danger);margin-top:4px;">5.0%</div>
+          </div>
+          <div style="color:var(--border);align-self:center;">=</div>
+          <div>
+            <div style="color:var(--text-3);font-size:11px;">最终</div>
+            <div style="font-size:18px;font-weight:600;color:var(--warning);margin-top:4px;">82.3%</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 红线汇总 -->
+      <div style="background:#fff;border-radius:var(--radius);padding:14px;margin-bottom:12px;">
+        <div style="display:flex;align-items:center;margin-bottom:10px;">
+          <div style="font-weight:600;font-size:14px;">红线问题汇总</div>
+          <div style="margin-left:auto;color:var(--danger);font-size:13px;font-weight:600;">2 项已触发</div>
+        </div>
+        <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border-2);font-size:13px;">
+          <span style="color:var(--text-2);">事故安全 · 第 2 项</span>
+          <span style="color:var(--danger);font-weight:600;">2 处</span>
+        </div>
+        <div style="display:flex;justify-content:space-between;padding:8px 0;font-size:13px;">
+          <span style="color:var(--text-2);">消防安全 · 第 7 项</span>
+          <span style="color:var(--danger);font-weight:600;">1 处</span>
+        </div>
+      </div>
+
+      <!-- 模块得分汇总 -->
+      <div style="background:#fff;border-radius:var(--radius);padding:14px;margin-bottom:12px;">
+        <div style="font-weight:600;font-size:14px;margin-bottom:10px;">模块得分明细</div>
+        <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border-2);font-size:13px;">
+          <span>环境卫生 <small style="color:var(--text-3);">30%</small></span>
+          <span style="color:var(--text);font-weight:600;">88.5%</span>
+        </div>
+        <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border-2);font-size:13px;">
+          <span>安全管理 <small style="color:var(--text-3);">15%</small></span>
+          <span style="color:var(--success);font-weight:600;">92.0%</span>
+        </div>
+        <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border-2);font-size:13px;">
+          <span>设施设备 <small style="color:var(--text-3);">20%</small></span>
+          <span style="color:var(--text);font-weight:600;">85.2%</span>
+        </div>
+        <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border-2);font-size:13px;">
+          <span>绿化养护 <small style="color:var(--text-3);">15%</small></span>
+          <span style="color:var(--success);font-weight:600;">90.0%</span>
+        </div>
+        <div style="display:flex;justify-content:space-between;padding:8px 0;font-size:13px;">
+          <span>客户服务 <small style="color:var(--text-3);">20%</small></span>
+          <span style="color:var(--warning);font-weight:600;">81.7%</span>
+        </div>
+      </div>
+
+      <!-- 备注 -->
+      <div style="background:#fff;border-radius:var(--radius);padding:14px;margin-bottom:12px;">
+        <div style="font-weight:600;font-size:14px;margin-bottom:8px;">检查总结备注</div>
+        <textarea placeholder="请输入本次检查的总体情况说明..." style="width:100%;border:1px solid var(--border);border-radius:6px;padding:10px;font-size:13px;font-family:inherit;resize:none;min-height:80px;box-sizing:border-box;">本次检查发现 2 项红线问题已触发,主要集中在机房门锁管理及电动车飞线充电方面,需限期整改;评分模块中客户服务得分相对较低,建议加强人员培训。</textarea>
+      </div>
+
+      <div style="background:#fff7e6;border:1px solid #ffd591;border-radius:var(--radius);padding:12px 14px;font-size:12px;color:#874d00;line-height:1.6;">
+        ⚠ 提交后报告将进入审核流程,无法再编辑。如需修改请先 <span style="color:var(--primary);">存为草稿</span>。
+      </div>
+
+    </div>
+
+    <div class="bottom-bar">
+      <button class="btn btn-ghost">返回修改</button>
+      <button class="btn btn-primary">确认提交</button>
+    </div>
+  </div>
+
+</div>
+
+<div class="preview-tip" style="text-align:center;padding:16px;color:#999;font-size:12px;">
+  原型预览 · 红线问题填写 / 评分表填写 / 提交确认 三屏 · 可在手机宽度（≤480px）下查看真实效果
+</div>
+
+<script>
+  // Stepper 交互
+  document.querySelectorAll('.stepper').forEach(s => {
+    const input = s.querySelector('input');
+    const [minus, plus] = s.querySelectorAll('button');
+    minus.addEventListener('click', () => {
+      let v = parseInt(input.value || '0', 10);
+      input.value = Math.max(0, v - 1);
+    });
+    plus.addEventListener('click', () => {
+      let v = parseInt(input.value || '0', 10);
+      input.value = v + 1;
+    });
+  });
+
+  // Tab 切换（视觉示例）
+  document.querySelectorAll('.tabs').forEach(t => {
+    t.querySelectorAll('.tab').forEach(tab => {
+      tab.addEventListener('click', () => {
+        t.querySelectorAll('.tab').forEach(x => x.classList.remove('active'));
+        tab.classList.add('active');
+      });
+    });
+  });
+
+  // 模块 chip 切换
+  document.querySelectorAll('.module-filter, .filter-chips').forEach(mf => {
+    mf.querySelectorAll('.chip').forEach(c => {
+      c.addEventListener('click', () => {
+        mf.querySelectorAll('.chip').forEach(x => x.classList.remove('active'));
+        c.classList.add('active');
+      });
+    });
+  });
+
+  // 检查类型切换
+  document.querySelectorAll('.type-card .opts').forEach(o => {
+    o.querySelectorAll('.opt').forEach(opt => {
+      opt.addEventListener('click', () => {
+        o.querySelectorAll('.opt').forEach(x => x.classList.remove('active'));
+        opt.classList.add('active');
+      });
+    });
+  });
+
+  // 分类概览卡切换
+  document.querySelectorAll('.cat-overview').forEach(co => {
+    co.querySelectorAll('.cat-card').forEach(c => {
+      c.addEventListener('click', () => {
+        co.querySelectorAll('.cat-card').forEach(x => x.classList.remove('active'));
+        c.classList.add('active');
+      });
+    });
+  });
+
+  // 项目选择
+  document.querySelectorAll('.project-list').forEach(pl => {
+    pl.querySelectorAll('.project-row').forEach(r => {
+      r.addEventListener('click', () => {
+        pl.querySelectorAll('.project-row').forEach(x => x.classList.remove('selected'));
+        r.classList.add('selected');
+      });
+    });
+  });
+</script>
+
+</body>
+</html>

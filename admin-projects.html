@@ -1,0 +1,895 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<title>项目管理 · 第三方检查后台</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { height: 100%; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Helvetica Neue", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+    color: #1f2329;
+    background: #f5f6f7;
+    font-size: 14px;
+    line-height: 1.5;
+  }
+
+  :root {
+    --primary: #1677ff;
+    --primary-hover: #4096ff;
+    --primary-light: #e6f4ff;
+    --danger: #ff4d4f;
+    --success: #52c41a;
+    --warning: #faad14;
+    --text: #1f2329;
+    --text-2: #4e5969;
+    --text-3: #86909c;
+    --text-4: #c9cdd4;
+    --border: #e5e6eb;
+    --border-2: #f2f3f5;
+    --bg: #f5f6f7;
+    --shadow: 0 1px 2px rgba(0,0,0,0.04);
+  }
+
+  /* 整体布局 */
+  .layout {
+    display: flex;
+    min-height: 100vh;
+  }
+
+  /* 侧边栏 */
+  .sidebar {
+    width: 220px;
+    background: #001529;
+    color: #fff;
+    flex-shrink: 0;
+  }
+  .logo {
+    height: 56px;
+    display: flex;
+    align-items: center;
+    padding: 0 20px;
+    font-size: 16px;
+    font-weight: 600;
+    border-bottom: 1px solid rgba(255,255,255,0.06);
+  }
+  .logo .dot {
+    width: 8px; height: 8px;
+    background: var(--primary);
+    border-radius: 2px;
+    margin-right: 10px;
+  }
+  .menu { padding: 12px 0; }
+  .menu-group {
+    color: rgba(255,255,255,0.4);
+    font-size: 12px;
+    padding: 12px 20px 8px;
+  }
+  .menu-item {
+    height: 40px;
+    padding: 0 20px;
+    display: flex;
+    align-items: center;
+    color: rgba(255,255,255,0.75);
+    font-size: 14px;
+    cursor: pointer;
+    border-left: 3px solid transparent;
+  }
+  .menu-item:hover {
+    background: rgba(255,255,255,0.04);
+    color: #fff;
+  }
+  .menu-item.active {
+    background: rgba(22,119,255,0.15);
+    color: #fff;
+    border-left-color: var(--primary);
+  }
+  .menu-item .ic {
+    width: 18px;
+    margin-right: 10px;
+    font-size: 14px;
+    text-align: center;
+    opacity: 0.8;
+  }
+
+  /* 主区域 */
+  .main {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+  }
+  .topbar {
+    height: 56px;
+    background: #fff;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    padding: 0 24px;
+    gap: 12px;
+  }
+  .topbar .crumb {
+    color: var(--text-2);
+    font-size: 13px;
+  }
+  .topbar .crumb .sep { margin: 0 6px; color: var(--text-4); }
+  .topbar .crumb .cur { color: var(--text); font-weight: 500; }
+  .topbar .right {
+    margin-left: auto;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    color: var(--text-2);
+    font-size: 13px;
+  }
+  .topbar .avatar {
+    width: 30px; height: 30px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #4096ff, #1677ff);
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    font-weight: 600;
+  }
+
+  .page {
+    padding: 16px;
+    flex: 1;
+    overflow: auto;
+  }
+
+  /* 卡片块 */
+  .card {
+    background: #fff;
+    border-radius: 6px;
+    box-shadow: var(--shadow);
+    margin-bottom: 12px;
+  }
+  .card.pad { padding: 20px 24px; }
+
+  /* 筛选栏 */
+  .filter-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr) auto;
+    gap: 16px 24px;
+    align-items: center;
+  }
+  .filter-item {
+    display: flex;
+    align-items: center;
+  }
+  .filter-item .label {
+    color: var(--text-2);
+    font-size: 14px;
+    width: 70px;
+    flex-shrink: 0;
+    text-align: right;
+    padding-right: 12px;
+  }
+  .filter-item .label::after { content: '：'; }
+
+  .input, .select {
+    flex: 1;
+    height: 32px;
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 0 12px;
+    font-size: 14px;
+    color: var(--text);
+    background: #fff;
+    outline: none;
+    font-family: inherit;
+    transition: border-color 0.2s;
+  }
+  .input:focus, .select:focus { border-color: var(--primary); }
+  .input::placeholder { color: var(--text-3); }
+
+  .select {
+    appearance: none;
+    background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 12 12"><path d="M2 4.5l4 4 4-4" stroke="%2386909c" stroke-width="1.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>');
+    background-repeat: no-repeat;
+    background-position: right 10px center;
+    padding-right: 30px;
+  }
+
+  .filter-actions {
+    display: flex;
+    gap: 8px;
+    justify-content: flex-end;
+  }
+
+  /* 按钮 */
+  .btn {
+    height: 32px;
+    padding: 0 16px;
+    border-radius: 4px;
+    border: 1px solid var(--border);
+    background: #fff;
+    color: var(--text-2);
+    font-size: 14px;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-family: inherit;
+    transition: all 0.2s;
+  }
+  .btn:hover {
+    border-color: var(--primary);
+    color: var(--primary);
+  }
+  .btn.primary {
+    background: var(--primary);
+    color: #fff;
+    border-color: var(--primary);
+  }
+  .btn.primary:hover {
+    background: var(--primary-hover);
+    border-color: var(--primary-hover);
+    color: #fff;
+  }
+  .btn.danger {
+    color: var(--danger);
+    border-color: var(--border);
+  }
+  .btn.danger:hover { border-color: var(--danger); }
+  .btn .ic { font-size: 14px; }
+
+  /* 工具栏 */
+  .toolbar {
+    padding: 16px 24px 0;
+    display: flex;
+    gap: 8px;
+    align-items: center;
+  }
+  .toolbar .right {
+    margin-left: auto;
+    display: flex;
+    gap: 8px;
+    align-items: center;
+  }
+  .toolbar .total-tip {
+    color: var(--text-3);
+    font-size: 13px;
+  }
+  .toolbar .total-tip b { color: var(--primary); font-weight: 600; }
+
+  /* 表格 */
+  .table-wrap {
+    padding: 16px 24px 24px;
+  }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 14px;
+  }
+  thead th {
+    background: #f7f8fa;
+    color: var(--text-2);
+    font-weight: 500;
+    text-align: left;
+    padding: 12px;
+    border-bottom: 1px solid var(--border);
+    white-space: nowrap;
+  }
+  tbody td {
+    padding: 14px 12px;
+    border-bottom: 1px solid var(--border-2);
+    color: var(--text);
+    vertical-align: middle;
+  }
+  tbody tr:hover { background: #fafbfc; }
+  tbody tr.checked { background: #f0f7ff; }
+  thead th:first-child, tbody td:first-child {
+    width: 44px;
+    padding-left: 16px;
+  }
+
+  /* 复选框 */
+  .checkbox {
+    width: 16px; height: 16px;
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    background: #fff;
+    display: inline-block;
+    position: relative;
+    cursor: pointer;
+    vertical-align: middle;
+  }
+  .checkbox.checked {
+    background: var(--primary);
+    border-color: var(--primary);
+  }
+  .checkbox.checked::after {
+    content: '';
+    position: absolute;
+    left: 4px; top: 1px;
+    width: 5px; height: 9px;
+    border: solid #fff;
+    border-width: 0 2px 2px 0;
+    transform: rotate(45deg);
+  }
+  .checkbox.indeterminate {
+    background: var(--primary);
+    border-color: var(--primary);
+  }
+  .checkbox.indeterminate::after {
+    content: '';
+    position: absolute;
+    left: 3px; top: 7px;
+    width: 8px; height: 2px;
+    background: #fff;
+  }
+
+  /* 标签 - 项目等级 */
+  .tag {
+    display: inline-block;
+    padding: 2px 10px;
+    border-radius: 12px;
+    font-size: 12px;
+    line-height: 1.6;
+  }
+  .tag.lv-sun { background: #fff7e6; color: #d48806; }
+  .tag.lv-tulip { background: #f0f5ff; color: #2f54eb; }
+  .tag.lv-bauhinia { background: #fff0f6; color: #c41d7f; }
+  .tag.lv-lily { background: #fffbe6; color: #d4b106; }
+
+  .tag.scale-s { background: #f6ffed; color: #52c41a; }
+  .tag.scale-m { background: #e6f4ff; color: #1677ff; }
+  .tag.scale-l { background: #fff2e8; color: #d46b08; }
+
+  .tag.st-on { background: #f6ffed; color: #52c41a; }
+  .tag.st-off { background: #fff1f0; color: #ff4d4f; }
+
+  /* 操作列 */
+  .op-link {
+    color: var(--primary);
+    cursor: pointer;
+    margin-right: 16px;
+    font-size: 14px;
+  }
+  .op-link:hover { color: var(--primary-hover); }
+  .op-link.danger { color: var(--danger); }
+  .op-link.danger:hover { color: #ff7875; }
+
+  /* 分页 */
+  .pagination {
+    margin-top: 16px;
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    gap: 8px;
+    color: var(--text-2);
+    font-size: 13px;
+  }
+  .pagination .total { margin-right: 16px; }
+  .pagination .page-btn {
+    min-width: 32px;
+    height: 32px;
+    padding: 0 8px;
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    background: #fff;
+    cursor: pointer;
+    font-size: 13px;
+    color: var(--text-2);
+  }
+  .pagination .page-btn.active {
+    border-color: var(--primary);
+    color: var(--primary);
+  }
+  .pagination .page-btn:hover {
+    border-color: var(--primary);
+    color: var(--primary);
+  }
+  .pagination .ellipsis { padding: 0 4px; color: var(--text-3); }
+  .pagination .jumper {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-left: 8px;
+  }
+  .pagination .jumper input {
+    width: 50px;
+    height: 32px;
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    text-align: center;
+    font-size: 13px;
+    outline: none;
+    color: var(--text);
+  }
+
+  /* Modal */
+  .modal-mask {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.45);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+  }
+  .modal-mask.hidden { display: none; }
+  .modal {
+    width: 560px;
+    background: #fff;
+    border-radius: 8px;
+    overflow: hidden;
+  }
+  .modal-head {
+    padding: 16px 24px;
+    border-bottom: 1px solid var(--border-2);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .modal-head .title { font-size: 16px; font-weight: 600; color: var(--text); }
+  .modal-head .close { color: var(--text-3); cursor: pointer; font-size: 18px; }
+  .modal-body { padding: 24px; }
+  .modal-foot {
+    padding: 12px 24px;
+    border-top: 1px solid var(--border-2);
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+  }
+
+  /* 表单 */
+  .form-row {
+    display: flex;
+    align-items: center;
+    margin-bottom: 16px;
+  }
+  .form-row .lab {
+    width: 100px;
+    color: var(--text-2);
+    text-align: right;
+    padding-right: 12px;
+    flex-shrink: 0;
+  }
+  .form-row .lab.required::before {
+    content: '*';
+    color: var(--danger);
+    margin-right: 4px;
+  }
+  .form-row .ctrl { flex: 1; }
+  .form-row .input, .form-row .select { width: 100%; }
+
+  /* 导入 modal */
+  .upload-zone {
+    border: 1px dashed var(--border);
+    border-radius: 6px;
+    padding: 36px 20px;
+    text-align: center;
+    background: #fafbfc;
+    cursor: pointer;
+  }
+  .upload-zone:hover { border-color: var(--primary); }
+  .upload-zone .ic { font-size: 32px; color: var(--primary); }
+  .upload-zone .t1 { font-size: 14px; color: var(--text); margin-top: 8px; }
+  .upload-zone .t2 { font-size: 12px; color: var(--text-3); margin-top: 4px; }
+  .upload-tip {
+    margin-top: 12px;
+    font-size: 12px;
+    color: var(--text-3);
+    line-height: 1.6;
+  }
+  .upload-tip a { color: var(--primary); cursor: pointer; }
+</style>
+</head>
+<body>
+
+<div class="layout">
+
+  <!-- 侧边栏 -->
+  <aside class="sidebar">
+    <div class="logo">
+      <span class="dot"></span>第三方检查后台
+    </div>
+    <nav class="menu">
+      <div class="menu-group">基础数据</div>
+      <div class="menu-item active"><span class="ic">📁</span>项目管理</div>
+      <div class="menu-item" onclick="location.href='admin-templates.html'"><span class="ic">📋</span>检查模板</div>
+      <div class="menu-item" onclick="location.href='admin-inspectors.html'"><span class="ic">👥</span>检查员管理</div>
+
+      <div class="menu-group">检查作业</div>
+      <div class="menu-item" onclick="location.href='admin-inspections.html'"><span class="ic">📝</span>检查管理</div>
+
+      <div class="menu-group">数据分析</div>
+      <div class="menu-item"><span class="ic">📈</span>统计分析</div>
+    </nav>
+  </aside>
+
+  <!-- 主区域 -->
+  <main class="main">
+    <div class="topbar">
+      <div class="crumb">
+        <span>基础数据</span>
+        <span class="sep">/</span>
+        <span class="cur">项目管理</span>
+      </div>
+      <div class="right">
+        <span>🔔</span>
+        <span>蔡灿武</span>
+        <div class="avatar">蔡</div>
+      </div>
+    </div>
+
+    <div class="page">
+
+      <!-- 筛选区 -->
+      <div class="card pad">
+        <div class="filter-grid">
+          <div class="filter-item">
+            <span class="label">项目名称</span>
+            <input class="input" placeholder="请输入项目名称 / 编号" />
+          </div>
+          <div class="filter-item">
+            <span class="label">项目等级</span>
+            <select class="select">
+              <option>全部</option>
+              <option>金百合</option>
+              <option>紫荆花</option>
+              <option>郁金香</option>
+              <option>向日葵</option>
+            </select>
+          </div>
+          <div class="filter-item">
+            <span class="label">项目规模</span>
+            <select class="select">
+              <option>全部</option>
+              <option>小盘（≤10万㎡）</option>
+              <option>中盘（10–30万㎡）</option>
+              <option>大盘（≥30万㎡）</option>
+            </select>
+          </div>
+          <div class="filter-actions">
+            <button class="btn"><span class="ic">↻</span>重置</button>
+            <button class="btn primary"><span class="ic">🔍</span>查询</button>
+          </div>
+
+          <div class="filter-item">
+            <span class="label">状态</span>
+            <select class="select">
+              <option>全部</option>
+              <option>启用</option>
+              <option>停用</option>
+            </select>
+          </div>
+          <div></div>
+          <div></div>
+          <div></div>
+        </div>
+      </div>
+
+      <!-- 表格区 -->
+      <div class="card">
+        <div class="toolbar">
+          <button class="btn primary"><span class="ic">+</span>新增项目</button>
+          <button class="btn"><span class="ic">⤓</span>导入</button>
+          <button class="btn"><span class="ic">⤒</span>导出</button>
+          <button class="btn danger"><span class="ic">🗑</span>批量删除</button>
+          <div class="right">
+            <span class="total-tip">已选 <b>2</b> 项</span>
+          </div>
+        </div>
+
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th><span class="checkbox indeterminate"></span></th>
+                <th>编码(ID)</th>
+                <th>项目名称</th>
+                <th>项目等级</th>
+                <th>项目规模</th>
+                <th>创建人</th>
+                <th>更新时间</th>
+                <th>状态</th>
+                <th style="width:160px;">操作</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr class="checked">
+                <td><span class="checkbox checked"></span></td>
+                <td>PJ20260001</td>
+                <td>时代外滩</td>
+                <td><span class="tag lv-sun">向日葵</span></td>
+                <td><span class="tag scale-s">小盘</span></td>
+                <td>蔡灿武</td>
+                <td>2026-05-06 14:32</td>
+                <td><span class="tag st-on">启用</span></td>
+                <td>
+                  <span class="op-link">编辑</span>
+                  <span class="op-link">详情</span>
+                  <span class="op-link danger">删除</span>
+                </td>
+              </tr>
+              <tr class="checked">
+                <td><span class="checkbox checked"></span></td>
+                <td>PJ20260002</td>
+                <td>时代糖果</td>
+                <td><span class="tag lv-sun">向日葵</span></td>
+                <td><span class="tag scale-m">中盘</span></td>
+                <td>蔡灿武</td>
+                <td>2026-05-05 10:18</td>
+                <td><span class="tag st-on">启用</span></td>
+                <td>
+                  <span class="op-link">编辑</span>
+                  <span class="op-link">详情</span>
+                  <span class="op-link danger">删除</span>
+                </td>
+              </tr>
+              <tr>
+                <td><span class="checkbox"></span></td>
+                <td>PJ20260003</td>
+                <td>时代倾城</td>
+                <td><span class="tag lv-sun">向日葵</span></td>
+                <td><span class="tag scale-l">大盘</span></td>
+                <td>蔡灿武</td>
+                <td>2026-05-04 09:45</td>
+                <td><span class="tag st-on">启用</span></td>
+                <td>
+                  <span class="op-link">编辑</span>
+                  <span class="op-link">详情</span>
+                  <span class="op-link danger">删除</span>
+                </td>
+              </tr>
+              <tr>
+                <td><span class="checkbox"></span></td>
+                <td>PJ20260004</td>
+                <td>时代春树里</td>
+                <td><span class="tag lv-tulip">郁金香</span></td>
+                <td><span class="tag scale-s">小盘</span></td>
+                <td>蔡灿武</td>
+                <td>2026-05-03 16:22</td>
+                <td><span class="tag st-on">启用</span></td>
+                <td>
+                  <span class="op-link">编辑</span>
+                  <span class="op-link">详情</span>
+                  <span class="op-link danger">删除</span>
+                </td>
+              </tr>
+              <tr>
+                <td><span class="checkbox"></span></td>
+                <td>PJ20260005</td>
+                <td>时代云来</td>
+                <td><span class="tag lv-bauhinia">紫荆花</span></td>
+                <td><span class="tag scale-s">小盘</span></td>
+                <td>蔡灿武</td>
+                <td>2026-05-02 11:08</td>
+                <td><span class="tag st-on">启用</span></td>
+                <td>
+                  <span class="op-link">编辑</span>
+                  <span class="op-link">详情</span>
+                  <span class="op-link danger">删除</span>
+                </td>
+              </tr>
+              <tr>
+                <td><span class="checkbox"></span></td>
+                <td>PJ20260006</td>
+                <td>时代城</td>
+                <td><span class="tag lv-bauhinia">紫荆花</span></td>
+                <td><span class="tag scale-s">小盘</span></td>
+                <td>蔡灿武</td>
+                <td>2026-04-30 08:50</td>
+                <td><span class="tag st-on">启用</span></td>
+                <td>
+                  <span class="op-link">编辑</span>
+                  <span class="op-link">详情</span>
+                  <span class="op-link danger">删除</span>
+                </td>
+              </tr>
+              <tr>
+                <td><span class="checkbox"></span></td>
+                <td>PJ20260007</td>
+                <td>时代家</td>
+                <td><span class="tag lv-lily">金百合</span></td>
+                <td><span class="tag scale-s">小盘</span></td>
+                <td>蔡灿武</td>
+                <td>2026-04-28 17:15</td>
+                <td><span class="tag st-off">停用</span></td>
+                <td>
+                  <span class="op-link">编辑</span>
+                  <span class="op-link">详情</span>
+                  <span class="op-link danger">删除</span>
+                </td>
+              </tr>
+              <tr>
+                <td><span class="checkbox"></span></td>
+                <td>PJ20260008</td>
+                <td>金百合花园 · 三期</td>
+                <td><span class="tag lv-lily">金百合</span></td>
+                <td><span class="tag scale-m">中盘</span></td>
+                <td>蔡灿武</td>
+                <td>2026-04-26 10:33</td>
+                <td><span class="tag st-on">启用</span></td>
+                <td>
+                  <span class="op-link">编辑</span>
+                  <span class="op-link">详情</span>
+                  <span class="op-link danger">删除</span>
+                </td>
+              </tr>
+              <tr>
+                <td><span class="checkbox"></span></td>
+                <td>PJ20260009</td>
+                <td>翠湖天地花园</td>
+                <td><span class="tag lv-lily">金百合</span></td>
+                <td><span class="tag scale-l">大盘</span></td>
+                <td>蔡灿武</td>
+                <td>2026-04-24 15:42</td>
+                <td><span class="tag st-on">启用</span></td>
+                <td>
+                  <span class="op-link">编辑</span>
+                  <span class="op-link">详情</span>
+                  <span class="op-link danger">删除</span>
+                </td>
+              </tr>
+              <tr>
+                <td><span class="checkbox"></span></td>
+                <td>PJ20260010</td>
+                <td>滨江壹号院</td>
+                <td><span class="tag lv-bauhinia">紫荆花</span></td>
+                <td><span class="tag scale-l">大盘</span></td>
+                <td>蔡灿武</td>
+                <td>2026-04-22 09:20</td>
+                <td><span class="tag st-on">启用</span></td>
+                <td>
+                  <span class="op-link">编辑</span>
+                  <span class="op-link">详情</span>
+                  <span class="op-link danger">删除</span>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+
+          <div class="pagination">
+            <span class="total">共 128 条</span>
+            <button class="page-btn">‹</button>
+            <button class="page-btn active">1</button>
+            <button class="page-btn">2</button>
+            <button class="page-btn">3</button>
+            <button class="page-btn">4</button>
+            <button class="page-btn">5</button>
+            <span class="ellipsis">···</span>
+            <button class="page-btn">13</button>
+            <button class="page-btn">›</button>
+            <select class="select" style="width:100px;height:32px;">
+              <option>10 条/页</option>
+              <option>20 条/页</option>
+              <option>50 条/页</option>
+            </select>
+            <span class="jumper">跳至 <input value="1" /> 页</span>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </main>
+
+</div>
+
+<!-- 编辑/新增 Modal -->
+<div class="modal-mask hidden" id="editModal">
+  <div class="modal">
+    <div class="modal-head">
+      <div class="title">编辑项目</div>
+      <span class="close" onclick="document.getElementById('editModal').classList.add('hidden')">×</span>
+    </div>
+    <div class="modal-body">
+      <div class="form-row">
+        <div class="lab required">项目编码</div>
+        <div class="ctrl"><input class="input" value="PJ20260001" readonly style="background:#f7f8fa;color:var(--text-3);" /></div>
+      </div>
+      <div class="form-row">
+        <div class="lab required">项目名称</div>
+        <div class="ctrl"><input class="input" value="时代外滩" /></div>
+      </div>
+      <div class="form-row">
+        <div class="lab required">项目等级</div>
+        <div class="ctrl">
+          <select class="select">
+            <option>金百合</option>
+            <option>紫荆花</option>
+            <option>郁金香</option>
+            <option selected>向日葵</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="lab required">项目规模</div>
+        <div class="ctrl">
+          <select class="select">
+            <option selected>小盘（≤10万㎡）</option>
+            <option>中盘（10–30万㎡）</option>
+            <option>大盘（≥30万㎡）</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="lab">状态</div>
+        <div class="ctrl">
+          <select class="select" style="width:200px;">
+            <option selected>启用</option>
+            <option>停用</option>
+          </select>
+        </div>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn" onclick="document.getElementById('editModal').classList.add('hidden')">取消</button>
+      <button class="btn primary" onclick="document.getElementById('editModal').classList.add('hidden')">保存</button>
+    </div>
+  </div>
+</div>
+
+<!-- 导入 Modal -->
+<div class="modal-mask hidden" id="importModal">
+  <div class="modal">
+    <div class="modal-head">
+      <div class="title">批量导入项目</div>
+      <span class="close" onclick="document.getElementById('importModal').classList.add('hidden')">×</span>
+    </div>
+    <div class="modal-body">
+      <div class="upload-zone">
+        <div class="ic">⤓</div>
+        <div class="t1">点击上传 或 拖拽文件到此区域</div>
+        <div class="t2">支持 .xlsx / .xls 文件,大小不超过 10MB</div>
+      </div>
+      <div class="upload-tip">
+        ℹ️ 请按照模板格式填写,首次使用请先 <a>下载导入模板</a>。<br>
+        必填字段:项目名称、项目等级、项目规模。
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn" onclick="document.getElementById('importModal').classList.add('hidden')">取消</button>
+      <button class="btn primary">开始导入</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  // 编辑按钮
+  document.querySelectorAll('.op-link').forEach(el => {
+    if (el.textContent === '编辑') {
+      el.addEventListener('click', () => {
+        document.getElementById('editModal').classList.remove('hidden');
+      });
+    }
+  });
+
+  // 新增按钮
+  document.querySelectorAll('.btn').forEach(b => {
+    if (b.textContent.includes('新增项目')) {
+      b.addEventListener('click', () => {
+        document.querySelector('#editModal .title').textContent = '新增项目';
+        document.querySelectorAll('#editModal input').forEach(i => {
+          if (!i.readOnly) i.value = '';
+        });
+        document.getElementById('editModal').classList.remove('hidden');
+      });
+    }
+    if (b.textContent.includes('导入')) {
+      b.addEventListener('click', () => {
+        document.getElementById('importModal').classList.remove('hidden');
+      });
+    }
+  });
+
+  // 复选框
+  document.querySelectorAll('.checkbox').forEach(c => {
+    c.addEventListener('click', (e) => {
+      e.stopPropagation();
+      c.classList.remove('indeterminate');
+      c.classList.toggle('checked');
+      const tr = c.closest('tr');
+      if (tr) tr.classList.toggle('checked', c.classList.contains('checked'));
+    });
+  });
+</script>
+
+</body>
+</html>

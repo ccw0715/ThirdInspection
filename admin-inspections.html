@@ -1,0 +1,1855 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<title>检查管理 · 第三方检查后台</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { height: 100%; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Helvetica Neue", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+    color: #1f2329;
+    background: #f5f6f7;
+    font-size: 14px;
+    line-height: 1.5;
+  }
+
+  :root {
+    --primary: #1677ff;
+    --primary-hover: #4096ff;
+    --primary-light: #e6f4ff;
+    --danger: #ff4d4f;
+    --success: #52c41a;
+    --warning: #faad14;
+    --text: #1f2329;
+    --text-2: #4e5969;
+    --text-3: #86909c;
+    --text-4: #c9cdd4;
+    --border: #e5e6eb;
+    --border-2: #f2f3f5;
+    --bg: #f5f6f7;
+    --shadow: 0 1px 2px rgba(0,0,0,0.04);
+  }
+
+  .layout { display: flex; min-height: 100vh; }
+
+  /* 侧边栏 */
+  .sidebar {
+    width: 220px;
+    background: #001529;
+    color: #fff;
+    flex-shrink: 0;
+  }
+  .logo {
+    height: 56px;
+    display: flex;
+    align-items: center;
+    padding: 0 20px;
+    font-size: 16px;
+    font-weight: 600;
+    border-bottom: 1px solid rgba(255,255,255,0.06);
+  }
+  .logo .dot {
+    width: 8px; height: 8px;
+    background: var(--primary);
+    border-radius: 2px;
+    margin-right: 10px;
+  }
+  .menu { padding: 12px 0; }
+  .menu-group { color: rgba(255,255,255,0.4); font-size: 12px; padding: 12px 20px 8px; }
+  .menu-item {
+    height: 40px;
+    padding: 0 20px;
+    display: flex;
+    align-items: center;
+    color: rgba(255,255,255,0.75);
+    font-size: 14px;
+    cursor: pointer;
+    border-left: 3px solid transparent;
+  }
+  .menu-item:hover { background: rgba(255,255,255,0.04); color: #fff; }
+  .menu-item.active {
+    background: rgba(22,119,255,0.15);
+    color: #fff;
+    border-left-color: var(--primary);
+  }
+  .menu-item .ic { width: 18px; margin-right: 10px; font-size: 14px; text-align: center; opacity: 0.8; }
+
+  /* 主区域 */
+  .main { flex: 1; display: flex; flex-direction: column; min-width: 0; }
+  .topbar {
+    height: 56px;
+    background: #fff;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    padding: 0 24px;
+    gap: 12px;
+  }
+  .crumb { color: var(--text-2); font-size: 13px; }
+  .crumb .sep { margin: 0 6px; color: var(--text-4); }
+  .crumb .cur { color: var(--text); font-weight: 500; }
+  .topbar .right {
+    margin-left: auto;
+    display: flex; align-items: center;
+    gap: 16px;
+    color: var(--text-2);
+    font-size: 13px;
+  }
+  .avatar {
+    width: 30px; height: 30px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #4096ff, #1677ff);
+    color: #fff;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 12px; font-weight: 600;
+  }
+
+  .page { padding: 16px; flex: 1; overflow: auto; }
+
+  .card {
+    background: #fff;
+    border-radius: 6px;
+    box-shadow: var(--shadow);
+    margin-bottom: 12px;
+  }
+  .card.pad { padding: 20px 24px; }
+
+  /* 状态 Tab */
+  .status-tabs {
+    background: #fff;
+    border-radius: 6px 6px 0 0;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    padding: 0 24px;
+  }
+  .status-tabs .tab {
+    height: 48px;
+    line-height: 48px;
+    padding: 0 20px;
+    color: var(--text-2);
+    font-size: 14px;
+    cursor: pointer;
+    position: relative;
+    margin-right: 4px;
+  }
+  .status-tabs .tab .num {
+    margin-left: 6px;
+    background: var(--bg);
+    color: var(--text-3);
+    border-radius: 10px;
+    padding: 1px 8px;
+    font-size: 12px;
+  }
+  .status-tabs .tab.active {
+    color: var(--primary);
+    font-weight: 500;
+  }
+  .status-tabs .tab.active .num {
+    background: var(--primary-light);
+    color: var(--primary);
+  }
+  .status-tabs .tab.active::after {
+    content: '';
+    position: absolute;
+    left: 20px; right: 20px; bottom: -1px;
+    height: 2px;
+    background: var(--primary);
+    border-radius: 2px;
+  }
+
+  /* 筛选 */
+  .filter-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr) auto;
+    gap: 16px 24px;
+    align-items: center;
+  }
+  .filter-item { display: flex; align-items: center; }
+  .filter-item .label {
+    color: var(--text-2);
+    font-size: 14px;
+    width: 70px;
+    flex-shrink: 0;
+    text-align: right;
+    padding-right: 12px;
+  }
+  .filter-item .label::after { content: '：'; }
+
+  .input, .select {
+    flex: 1;
+    height: 32px;
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 0 12px;
+    font-size: 14px;
+    color: var(--text);
+    background: #fff;
+    outline: none;
+    font-family: inherit;
+  }
+  .input:focus, .select:focus { border-color: var(--primary); }
+  .input::placeholder { color: var(--text-3); }
+  .select {
+    appearance: none;
+    background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 12 12"><path d="M2 4.5l4 4 4-4" stroke="%2386909c" stroke-width="1.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>');
+    background-repeat: no-repeat;
+    background-position: right 10px center;
+    padding-right: 30px;
+  }
+  .filter-item .date-range {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .filter-item .date-range .input { flex: 1; }
+
+  .filter-actions { display: flex; gap: 8px; justify-content: flex-end; }
+
+  /* 按钮 */
+  .btn {
+    height: 32px;
+    padding: 0 16px;
+    border-radius: 4px;
+    border: 1px solid var(--border);
+    background: #fff;
+    color: var(--text-2);
+    font-size: 14px;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-family: inherit;
+    transition: all 0.2s;
+  }
+  .btn:hover { border-color: var(--primary); color: var(--primary); }
+  .btn.primary {
+    background: var(--primary);
+    color: #fff;
+    border-color: var(--primary);
+  }
+  .btn.primary:hover { background: var(--primary-hover); border-color: var(--primary-hover); color: #fff; }
+  .btn.danger { color: var(--danger); }
+  .btn.danger:hover { border-color: var(--danger); }
+
+  /* 工具栏 */
+  .toolbar {
+    padding: 16px 24px 0;
+    display: flex;
+    gap: 8px;
+    align-items: center;
+  }
+  .toolbar .right {
+    margin-left: auto;
+    display: flex;
+    gap: 8px;
+    align-items: center;
+  }
+  .toolbar .total-tip { color: var(--text-3); font-size: 13px; }
+  .toolbar .total-tip b { color: var(--primary); font-weight: 600; }
+
+  /* 表格 */
+  .table-wrap { padding: 16px 24px 24px; }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 14px;
+  }
+  thead th {
+    background: #f7f8fa;
+    color: var(--text-2);
+    font-weight: 500;
+    text-align: left;
+    padding: 12px;
+    border-bottom: 1px solid var(--border);
+    white-space: nowrap;
+  }
+  tbody td {
+    padding: 14px 12px;
+    border-bottom: 1px solid var(--border-2);
+    color: var(--text);
+    vertical-align: middle;
+  }
+  tbody tr:hover { background: #fafbfc; }
+  thead th:first-child, tbody td:first-child {
+    padding-left: 16px;
+  }
+
+  /* 项目单元格 */
+  .proj-cell {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .proj-cell .icon {
+    width: 32px; height: 32px;
+    border-radius: 6px;
+    color: #fff;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 13px; font-weight: 600;
+    flex-shrink: 0;
+  }
+  .proj-cell .icon.c1 { background: linear-gradient(135deg, #91caff, #1677ff); }
+  .proj-cell .icon.c2 { background: linear-gradient(135deg, #b7eb8f, #52c41a); }
+  .proj-cell .icon.c3 { background: linear-gradient(135deg, #ffd591, #fa8c16); }
+  .proj-cell .icon.c4 { background: linear-gradient(135deg, #d3adf7, #722ed1); }
+  .proj-cell .icon.c5 { background: linear-gradient(135deg, #ffadd2, #c41d7f); }
+  .proj-cell .info .nm { font-weight: 500; color: var(--text); }
+  .proj-cell .info .meta { color: var(--text-3); font-size: 12px; margin-top: 2px; }
+
+  /* 检查员单元格 */
+  .insp-cell {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .insp-cell .av {
+    width: 26px; height: 26px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #91caff, #4096ff);
+    color: #fff;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 12px; font-weight: 600;
+  }
+  .insp-cell .av.c2 { background: linear-gradient(135deg, #b7eb8f, #52c41a); }
+  .insp-cell .av.c3 { background: linear-gradient(135deg, #ffd591, #fa8c16); }
+  .insp-cell .av.c4 { background: linear-gradient(135deg, #d3adf7, #722ed1); }
+  .insp-cell .av.c5 { background: linear-gradient(135deg, #ffadd2, #c41d7f); }
+
+  /* 得分 */
+  .score-cell {
+    font-weight: 700;
+    font-size: 16px;
+    font-family: -apple-system, "SF Pro Display", sans-serif;
+  }
+  .score-cell.green { color: var(--success); }
+  .score-cell.blue { color: var(--primary); }
+  .score-cell.warn { color: var(--warning); }
+  .score-cell.danger { color: var(--danger); }
+  .score-cell .delta {
+    display: inline-block;
+    margin-left: 4px;
+    font-size: 12px;
+    font-weight: 500;
+  }
+  .score-cell .delta.down { color: var(--danger); }
+  .score-cell .delta.up { color: var(--success); }
+
+  /* 状态 tag */
+  .tag {
+    display: inline-flex;
+    align-items: center;
+    padding: 3px 10px;
+    border-radius: 12px;
+    font-size: 12px;
+    line-height: 1.6;
+    white-space: nowrap;
+  }
+  .tag::before {
+    content: '';
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    margin-right: 5px;
+    background: currentColor;
+  }
+  .tag.st-draft { background: #fafafa; color: #8c8c8c; }
+  .tag.st-hq { background: #e6f4ff; color: #1677ff; }
+  .tag.st-proj { background: #fff7e6; color: #d48806; }
+  .tag.st-done { background: #f6ffed; color: #52c41a; }
+
+  .tag.scale {
+    background: #f0f5ff;
+    color: #2f54eb;
+    padding: 1px 6px;
+    font-size: 11px;
+    border-radius: 3px;
+  }
+  .tag.scale::before { display: none; }
+  .tag.lv {
+    padding: 1px 6px;
+    font-size: 11px;
+    border-radius: 3px;
+  }
+  .tag.lv::before { display: none; }
+  .tag.lv-lily { background: #fffbe6; color: #d4b106; }
+  .tag.lv-bauhinia { background: #fff0f6; color: #c41d7f; }
+  .tag.lv-tulip { background: #f0f5ff; color: #2f54eb; }
+  .tag.lv-sun { background: #fff7e6; color: #d48806; }
+
+  .tag.type {
+    padding: 1px 6px;
+    font-size: 11px;
+    border-radius: 3px;
+  }
+  .tag.type::before { display: none; }
+  .tag.type-on { background: #fff7e6; color: #d48806; }
+  .tag.type-off { background: #e6fffb; color: #13c2c2; }
+
+  /* 红线徽标 */
+  .redline-flag {
+    display: inline-block;
+    background: #fff1f0;
+    color: var(--danger);
+    border: 1px solid #ffccc7;
+    border-radius: 3px;
+    padding: 1px 6px;
+    font-size: 11px;
+    margin-left: 6px;
+  }
+
+  /* 操作 */
+  .op-link {
+    color: var(--primary);
+    cursor: pointer;
+    margin-right: 12px;
+    font-size: 14px;
+    white-space: nowrap;
+  }
+  .op-link:hover { color: var(--primary-hover); }
+  .op-link.danger { color: var(--danger); }
+
+  /* 数据概览 */
+  .stat-row {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 12px;
+    margin-bottom: 12px;
+  }
+  .stat-card {
+    background: #fff;
+    border-radius: 6px;
+    padding: 18px 20px;
+    box-shadow: var(--shadow);
+    display: flex;
+    align-items: center;
+    gap: 14px;
+  }
+  .stat-card .ic {
+    width: 44px; height: 44px;
+    border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    color: #fff;
+    font-size: 20px;
+  }
+  .stat-card .ic.c1 { background: linear-gradient(135deg, #4096ff, #1677ff); }
+  .stat-card .ic.c2 { background: linear-gradient(135deg, #ffc53d, #faad14); }
+  .stat-card .ic.c3 { background: linear-gradient(135deg, #ff7875, #ff4d4f); }
+  .stat-card .ic.c4 { background: linear-gradient(135deg, #73d13d, #52c41a); }
+  .stat-card .v {
+    font-size: 24px;
+    font-weight: 700;
+    color: var(--text);
+    line-height: 1.2;
+  }
+  .stat-card .l {
+    font-size: 12px;
+    color: var(--text-3);
+    margin-top: 2px;
+  }
+
+  /* 分页 */
+  .pagination {
+    margin-top: 16px;
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    gap: 8px;
+    color: var(--text-2);
+    font-size: 13px;
+  }
+  .pagination .total { margin-right: 16px; }
+  .pagination .page-btn {
+    min-width: 32px;
+    height: 32px;
+    padding: 0 8px;
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    background: #fff;
+    cursor: pointer;
+    font-size: 13px;
+    color: var(--text-2);
+  }
+  .pagination .page-btn.active { border-color: var(--primary); color: var(--primary); }
+  .pagination .page-btn:hover { border-color: var(--primary); color: var(--primary); }
+  .pagination .ellipsis { padding: 0 4px; color: var(--text-3); }
+  .pagination .jumper {
+    display: flex; align-items: center; gap: 6px; margin-left: 8px;
+  }
+  .pagination .jumper input {
+    width: 50px; height: 32px;
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    text-align: center;
+    font-size: 13px;
+    outline: none;
+    color: var(--text);
+  }
+
+  /* 详情抽屉 */
+  .drawer-mask {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.45);
+    z-index: 1000;
+  }
+  .drawer-mask.hidden { display: none; }
+  .drawer {
+    position: absolute;
+    top: 0; right: 0; bottom: 0;
+    width: 920px;
+    background: #f5f6f7;
+    display: flex;
+    flex-direction: column;
+  }
+  .drawer-head {
+    padding: 16px 24px;
+    background: #fff;
+    border-bottom: 1px solid var(--border-2);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .drawer-head .title { font-size: 16px; font-weight: 600; }
+  .drawer-head .close { color: var(--text-3); cursor: pointer; font-size: 18px; }
+  .drawer-body { flex: 1; overflow-y: auto; padding: 16px 20px 20px; }
+  .drawer-foot {
+    padding: 12px 24px;
+    background: #fff;
+    border-top: 1px solid var(--border-2);
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+  }
+
+  /* 详情顶部信息栏 */
+  .detail-meta-bar {
+    background: #fff;
+    border-radius: 6px;
+    padding: 14px 18px;
+    margin-bottom: 12px;
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 16px;
+  }
+  .meta-item .lab { color: var(--text-3); font-size: 12px; margin-bottom: 4px; }
+  .meta-item .val { color: var(--text); font-size: 14px; font-weight: 500; }
+  .meta-item .val.big {
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--warning);
+    line-height: 1;
+  }
+  .meta-item .val.big small { font-size: 12px; font-weight: normal; opacity: 0.6; }
+
+  /* 详情内 Tab */
+  .detail-tabs {
+    background: #fff;
+    border-radius: 6px 6px 0 0;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    padding: 0 20px;
+  }
+  .detail-tabs .tab {
+    height: 44px;
+    line-height: 44px;
+    padding: 0 18px;
+    color: var(--text-2);
+    font-size: 14px;
+    cursor: pointer;
+    position: relative;
+    margin-right: 4px;
+  }
+  .detail-tabs .tab .num {
+    margin-left: 4px;
+    background: var(--danger);
+    color: #fff;
+    border-radius: 8px;
+    padding: 0 6px;
+    font-size: 11px;
+    line-height: 16px;
+    display: inline-block;
+    min-width: 18px;
+    text-align: center;
+  }
+  .detail-tabs .tab.active {
+    color: var(--primary);
+    font-weight: 500;
+  }
+  .detail-tabs .tab.active::after {
+    content: '';
+    position: absolute;
+    left: 18px; right: 18px; bottom: -1px;
+    height: 2px;
+    background: var(--primary);
+  }
+
+  .detail-view { display: block; padding: 16px 20px 20px; background: #fff; border-radius: 0 0 6px 6px; }
+  .detail-view.hidden { display: none; }
+
+  /* 红线汇总条 */
+  .d-summary-strip {
+    background: #fff1f0;
+    border: 1px solid #ffccc7;
+    border-radius: 6px;
+    padding: 12px 16px;
+    margin-bottom: 16px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .d-summary-strip .lbl {
+    color: var(--danger);
+    font-weight: 600;
+    font-size: 14px;
+    margin-bottom: 2px;
+  }
+  .d-summary-strip .desc {
+    color: #ad2a32;
+    font-size: 12px;
+  }
+  .d-summary-strip .num {
+    color: var(--danger);
+    font-size: 22px;
+    font-weight: 700;
+    text-align: right;
+    line-height: 1;
+  }
+  .d-summary-strip .unit {
+    color: var(--danger);
+    font-size: 12px;
+    text-align: right;
+    margin-top: 2px;
+  }
+
+  /* 红线分组 */
+  .d-group {
+    background: #fafbfc;
+    border-radius: 6px;
+    margin-bottom: 14px;
+    overflow: hidden;
+  }
+  .d-group-head {
+    padding: 12px 16px;
+    display: flex;
+    align-items: center;
+    background: #fff;
+    border-bottom: 1px solid var(--border-2);
+  }
+  .d-group-head .gic {
+    width: 28px; height: 28px;
+    border-radius: 6px;
+    color: #fff;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 13px; font-weight: 600;
+    margin-right: 10px;
+  }
+  .d-group-head .gic.c1 { background: #ff4d4f; }
+  .d-group-head .gic.c2 { background: #fa8c16; }
+  .d-group-head .gic.c3 { background: #13c2c2; }
+  .d-group-head .gic.c4 { background: #722ed1; }
+  .d-group-head .gic.c5 { background: #8c8c8c; }
+  .d-group-head .nm { font-weight: 600; font-size: 14px; flex: 1; }
+  .d-group-head .ct { color: var(--text-3); font-size: 12px; }
+  .d-group-head .ct em { color: var(--danger); font-style: normal; font-weight: 600; }
+
+  .d-redline-item {
+    padding: 14px 16px;
+    border-top: 1px solid var(--border-2);
+    background: #fff;
+  }
+  .d-redline-item:first-of-type { border-top: none; }
+  .d-redline-item.triggered { background: #fffbe6; }
+  .d-ri-top {
+    display: flex;
+    gap: 10px;
+    align-items: flex-start;
+    margin-bottom: 10px;
+  }
+  .d-ri-top .idx {
+    width: 22px; height: 22px;
+    background: #f5f6f7;
+    border-radius: 4px;
+    text-align: center;
+    line-height: 22px;
+    font-size: 12px;
+    color: var(--text-2);
+    font-weight: 600;
+    flex-shrink: 0;
+  }
+  .d-ri-top .body { flex: 1; }
+  .d-ri-top .r-title { font-size: 14px; font-weight: 600; color: var(--text); margin-bottom: 4px; }
+  .d-ri-top .r-desc { font-size: 12px; color: var(--text-3); line-height: 1.6; }
+  .d-ri-top .r-note {
+    font-size: 11px;
+    color: var(--text-3);
+    background: #f5f6f7;
+    padding: 6px 8px;
+    border-radius: 4px;
+    margin-top: 6px;
+    line-height: 1.5;
+  }
+  .d-ri-top .r-note b { color: var(--warning); font-weight: 600; }
+  .d-ri-top .badge {
+    flex-shrink: 0;
+    padding: 2px 8px;
+    border-radius: 3px;
+    font-size: 11px;
+    font-weight: 500;
+  }
+  .d-ri-top .badge.ok { background: #f6ffed; color: var(--success); border: 1px solid #b7eb8f; }
+  .d-ri-top .badge.bad { background: #fff1f0; color: var(--danger); border: 1px solid #ffccc7; }
+
+  .d-ri-form {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding-left: 32px;
+    margin-bottom: 8px;
+  }
+  .d-ri-form .lbl { color: var(--text-3); font-size: 12px; }
+  .d-ri-form .num {
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--text);
+    background: #f5f6f7;
+    border-radius: 4px;
+    padding: 2px 12px;
+    min-width: 36px;
+    text-align: center;
+  }
+  .d-ri-form .num.bad { color: var(--danger); background: #fff1f0; }
+
+  .d-ri-content {
+    padding-left: 32px;
+  }
+  .d-ri-content .desc-text {
+    background: #f5f6f7;
+    border-radius: 4px;
+    padding: 8px 10px;
+    font-size: 13px;
+    color: var(--text-2);
+    margin-bottom: 8px;
+    line-height: 1.6;
+  }
+  .d-photos {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+  }
+  .d-photo {
+    width: 60px; height: 60px;
+    border-radius: 4px;
+    background: #f0f0f0 url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="60" height="60"><rect width="60" height="60" fill="%23d9d9d9"/><circle cx="20" cy="20" r="6" fill="%23bfbfbf"/><polygon points="8,52 26,30 40,44 52,28 52,52" fill="%23bfbfbf"/></svg>') center/cover no-repeat;
+    cursor: pointer;
+  }
+
+  /* 评分表总览 */
+  .d-score-overview {
+    background: linear-gradient(135deg, #fff7e6, #fffbe6);
+    border: 1px solid #ffe58f;
+    border-radius: 6px;
+    padding: 16px 20px;
+    margin-bottom: 16px;
+  }
+  .d-score-overview .total {
+    text-align: center;
+    padding: 6px 0 14px;
+    border-bottom: 1px dashed rgba(0,0,0,0.08);
+  }
+  .d-score-overview .total .lbl { color: var(--text-3); font-size: 12px; }
+  .d-score-overview .total .num {
+    font-size: 36px;
+    font-weight: 700;
+    color: var(--warning);
+    line-height: 1.2;
+  }
+  .d-score-overview .total .num small { font-size: 14px; opacity: 0.6; }
+  .d-score-overview .total .formula {
+    color: var(--text-3);
+    font-size: 12px;
+    margin-top: 4px;
+  }
+  .d-modules {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+    padding-top: 14px;
+  }
+  .d-module-cell {
+    background: #fff;
+    border-radius: 4px;
+    padding: 10px 12px;
+  }
+  .d-module-cell .mn { color: var(--text-3); font-size: 12px; }
+  .d-module-cell .mv {
+    font-size: 17px;
+    font-weight: 700;
+    color: var(--text);
+    margin-top: 2px;
+  }
+  .d-module-cell .mv small { font-size: 11px; color: var(--text-3); font-weight: normal; margin-left: 6px; }
+  .d-module-cell .mv.green { color: var(--success); }
+  .d-module-cell .mv.warn { color: var(--warning); }
+
+  /* 模块筛选 */
+  .d-mod-filter {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+    margin-bottom: 14px;
+  }
+  .d-mod-filter .chip {
+    background: #f5f6f7;
+    border-radius: 14px;
+    padding: 5px 12px;
+    font-size: 12px;
+    color: var(--text-2);
+    cursor: pointer;
+  }
+  .d-mod-filter .chip.active {
+    background: var(--primary);
+    color: #fff;
+  }
+  .d-mod-filter .chip .n { margin-left: 4px; opacity: 0.7; }
+
+  /* 评分项 */
+  .d-score-item {
+    background: #fafbfc;
+    border-radius: 6px;
+    padding: 14px 16px;
+    margin-bottom: 10px;
+  }
+  .d-score-item.deducted { border-left: 3px solid var(--warning); }
+  .d-score-item .si-head {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 8px;
+    flex-wrap: wrap;
+  }
+  .d-score-item .si-code {
+    background: #e6f4ff;
+    color: var(--primary);
+    border-radius: 3px;
+    padding: 2px 6px;
+    font-size: 11px;
+    font-weight: 600;
+  }
+  .d-score-item .si-mod {
+    background: #f0f5ff;
+    color: #4096ff;
+    border-radius: 3px;
+    padding: 2px 6px;
+    font-size: 11px;
+  }
+  .d-score-item .si-w {
+    margin-left: auto;
+    color: var(--text-3);
+    font-size: 11px;
+  }
+  .d-score-item .si-name {
+    font-size: 14px;
+    font-weight: 600;
+    margin-bottom: 6px;
+  }
+  .d-score-item .si-rule {
+    background: #fff;
+    border-radius: 4px;
+    padding: 8px 10px;
+    font-size: 12px;
+    color: var(--text-3);
+    line-height: 1.6;
+    margin-bottom: 10px;
+  }
+  .d-score-item .si-rule .lab { color: var(--text-3); }
+  .d-score-item .si-rule .ded { color: var(--warning); display: block; margin-top: 4px; font-size: 11px; }
+  .d-score-item .si-row {
+    display: flex;
+    align-items: center;
+    margin-bottom: 6px;
+  }
+  .d-score-item .si-row .l { color: var(--text-3); font-size: 12px; width: 80px; }
+  .d-score-item .si-row .v { font-size: 13px; font-weight: 500; color: var(--text); }
+  .d-score-item .si-row .v.green { color: var(--success); }
+  .d-score-item .si-row .v.warn { color: var(--warning); }
+  .d-score-item .si-row .num-box {
+    background: #f5f6f7;
+    border-radius: 4px;
+    padding: 2px 12px;
+    min-width: 40px;
+    text-align: center;
+    font-weight: 600;
+  }
+  .d-score-item .si-row .num-box.bad { background: #fff7e6; color: var(--warning); }
+  .d-score-item .si-explain {
+    background: #fff;
+    border-radius: 4px;
+    padding: 8px 10px;
+    font-size: 13px;
+    color: var(--text-2);
+    margin-top: 8px;
+    line-height: 1.6;
+  }
+  .d-score-item .d-photos { margin-top: 8px; }
+</style>
+</head>
+<body>
+
+<div class="layout">
+
+  <aside class="sidebar">
+    <div class="logo">
+      <span class="dot"></span>第三方检查后台
+    </div>
+    <nav class="menu">
+      <div class="menu-group">基础数据</div>
+      <div class="menu-item" onclick="location.href='admin-projects.html'"><span class="ic">📁</span>项目管理</div>
+      <div class="menu-item" onclick="location.href='admin-templates.html'"><span class="ic">📋</span>检查模板</div>
+      <div class="menu-item" onclick="location.href='admin-inspectors.html'"><span class="ic">👥</span>检查员管理</div>
+
+      <div class="menu-group">检查作业</div>
+      <div class="menu-item active"><span class="ic">📝</span>检查管理</div>
+
+      <div class="menu-group">数据分析</div>
+      <div class="menu-item"><span class="ic">📈</span>统计分析</div>
+    </nav>
+  </aside>
+
+  <main class="main">
+    <div class="topbar">
+      <div class="crumb">
+        <span>检查作业</span>
+        <span class="sep">/</span>
+        <span class="cur">检查管理</span>
+      </div>
+      <div class="right">
+        <span>🔔</span>
+        <span>蔡灿武</span>
+        <div class="avatar">蔡</div>
+      </div>
+    </div>
+
+    <div class="page">
+
+      <!-- 数据概览 -->
+      <div class="stat-row">
+        <div class="stat-card">
+          <div class="ic c1">📝</div>
+          <div>
+            <div class="v">186</div>
+            <div class="l">本月检查总数</div>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="ic c2">⏳</div>
+          <div>
+            <div class="v">12</div>
+            <div class="l">待总部审核</div>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="ic c3">🚩</div>
+          <div>
+            <div class="v">8</div>
+            <div class="l">待项目确定</div>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="ic c4">✓</div>
+          <div>
+            <div class="v">158</div>
+            <div class="l">已完成</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 筛选 -->
+      <div class="card pad">
+        <div class="filter-grid">
+          <div class="filter-item">
+            <span class="label">项目名称</span>
+            <input class="input" placeholder="请输入项目名称 / 编号" />
+          </div>
+          <div class="filter-item">
+            <span class="label">检查员</span>
+            <input class="input" placeholder="请输入检查员姓名" />
+          </div>
+          <div class="filter-item">
+            <span class="label">检查时间</span>
+            <div class="date-range">
+              <input class="input" type="date" />
+              <span style="color:var(--text-3);">~</span>
+              <input class="input" type="date" />
+            </div>
+          </div>
+          <div class="filter-actions">
+            <button class="btn">重置</button>
+            <button class="btn primary">查询</button>
+          </div>
+
+          <div class="filter-item">
+            <span class="label">项目等级</span>
+            <select class="select">
+              <option>全部</option>
+              <option>金百合</option>
+              <option>紫荆花</option>
+              <option>郁金香</option>
+              <option>向日葵</option>
+            </select>
+          </div>
+          <div class="filter-item">
+            <span class="label">得分区间</span>
+            <select class="select">
+              <option>全部</option>
+              <option>≥ 90%</option>
+              <option>80% – 90%</option>
+              <option>70% – 80%</option>
+              <option>＜ 70%</option>
+            </select>
+          </div>
+          <div class="filter-item">
+            <span class="label">是否触红线</span>
+            <select class="select">
+              <option>全部</option>
+              <option>已触发</option>
+              <option>未触发</option>
+            </select>
+          </div>
+          <div></div>
+        </div>
+      </div>
+
+      <!-- 表格区 -->
+      <div class="card">
+        <!-- 状态 Tab -->
+        <div class="status-tabs">
+          <div class="tab active" data-status="all">全部<span class="num">186</span></div>
+          <div class="tab" data-status="draft">待提交<span class="num">8</span></div>
+          <div class="tab" data-status="hq">待总部审核<span class="num">12</span></div>
+          <div class="tab" data-status="proj">待项目确定<span class="num">8</span></div>
+          <div class="tab" data-status="done">已完成<span class="num">158</span></div>
+        </div>
+
+        <div class="toolbar">
+          <button class="btn"><span>⤒</span>导出列表</button>
+          <button class="btn"><span>📊</span>批量导出报告</button>
+          <div class="right">
+            <span class="total-tip">共 <b>186</b> 条记录</span>
+          </div>
+        </div>
+
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th style="width:60px;">序号</th>
+                <th style="min-width:240px;">项目名称</th>
+                <th>检查员</th>
+                <th>检查时间</th>
+                <th>项目总得分</th>
+                <th>检查状态</th>
+                <th style="width:120px;">操作</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>1</td>
+                <td>
+                  <div class="proj-cell">
+                    <div class="icon c1">百</div>
+                    <div class="info">
+                      <div class="nm">金百合花园 · 三期</div>
+                      <div class="meta">
+                        <span class="tag scale">中盘</span>
+                        <span class="tag lv lv-lily">金百合</span>
+                        <span class="tag type type-on">明查</span>
+                      </div>
+                    </div>
+                  </div>
+                </td>
+                <td>
+                  <div class="insp-cell">
+                    <div class="av">张</div>
+                    <span>张明</span>
+                  </div>
+                </td>
+                <td>2026-05-08 14:32</td>
+                <td>
+                  <span class="score-cell warn">82.3<small style="font-size:13px;opacity:0.6;">%</small></span>
+                  <span class="redline-flag">触红线 -5</span>
+                </td>
+                <td><span class="tag st-hq">待总部审核</span></td>
+                <td><span class="op-link" onclick="openDetail()">查看详情</span></td>
+              </tr>
+              <tr>
+                <td>2</td>
+                <td>
+                  <div class="proj-cell">
+                    <div class="icon c2">翠</div>
+                    <div class="info">
+                      <div class="nm">翠湖天地花园</div>
+                      <div class="meta">
+                        <span class="tag scale">大盘</span>
+                        <span class="tag lv lv-lily">金百合</span>
+                        <span class="tag type type-on">明查</span>
+                      </div>
+                    </div>
+                  </div>
+                </td>
+                <td>
+                  <div class="insp-cell">
+                    <div class="av c2">李</div>
+                    <span>李娜</span>
+                  </div>
+                </td>
+                <td>2026-05-07 16:18</td>
+                <td><span class="score-cell green">91.2<small style="font-size:13px;opacity:0.6;">%</small></span></td>
+                <td><span class="tag st-done">已完成</span></td>
+                <td><span class="op-link" onclick="openDetail()">查看详情</span></td>
+              </tr>
+              <tr>
+                <td>3</td>
+                <td>
+                  <div class="proj-cell">
+                    <div class="icon c3">阳</div>
+                    <div class="info">
+                      <div class="nm">阳光海岸璟园</div>
+                      <div class="meta">
+                        <span class="tag scale">中盘</span>
+                        <span class="tag lv lv-bauhinia">紫荆花</span>
+                        <span class="tag type type-off">暗查</span>
+                      </div>
+                    </div>
+                  </div>
+                </td>
+                <td>
+                  <div class="insp-cell">
+                    <div class="av c3">王</div>
+                    <span>王伟</span>
+                  </div>
+                </td>
+                <td>2026-05-07 10:45</td>
+                <td><span class="score-cell blue">85.7<small style="font-size:13px;opacity:0.6;">%</small></span></td>
+                <td><span class="tag st-proj">待项目确定</span></td>
+                <td><span class="op-link" onclick="openDetail()">查看详情</span></td>
+              </tr>
+              <tr>
+                <td>4</td>
+                <td>
+                  <div class="proj-cell">
+                    <div class="icon c4">紫</div>
+                    <div class="info">
+                      <div class="nm">紫荆悦府</div>
+                      <div class="meta">
+                        <span class="tag scale">小盘</span>
+                        <span class="tag lv lv-tulip">郁金香</span>
+                        <span class="tag type type-on">明查</span>
+                      </div>
+                    </div>
+                  </div>
+                </td>
+                <td>
+                  <div class="insp-cell">
+                    <div class="av c4">陈</div>
+                    <span>陈晓燕</span>
+                  </div>
+                </td>
+                <td>2026-05-06 15:20</td>
+                <td><span class="score-cell green">94.3<small style="font-size:13px;opacity:0.6;">%</small></span></td>
+                <td><span class="tag st-done">已完成</span></td>
+                <td><span class="op-link" onclick="openDetail()">查看详情</span></td>
+              </tr>
+              <tr>
+                <td>5</td>
+                <td>
+                  <div class="proj-cell">
+                    <div class="icon c5">滨</div>
+                    <div class="info">
+                      <div class="nm">滨江壹号院</div>
+                      <div class="meta">
+                        <span class="tag scale">大盘</span>
+                        <span class="tag lv lv-bauhinia">紫荆花</span>
+                        <span class="tag type type-on">明查</span>
+                      </div>
+                    </div>
+                  </div>
+                </td>
+                <td>
+                  <div class="insp-cell">
+                    <div class="av c5">林</div>
+                    <span>林佳</span>
+                  </div>
+                </td>
+                <td>2026-05-05 11:08</td>
+                <td>
+                  <span class="score-cell danger">76.4<small style="font-size:13px;opacity:0.6;">%</small></span>
+                  <span class="redline-flag">触红线 -5</span>
+                </td>
+                <td><span class="tag st-hq">待总部审核</span></td>
+                <td><span class="op-link" onclick="openDetail()">查看详情</span></td>
+              </tr>
+              <tr>
+                <td>6</td>
+                <td>
+                  <div class="proj-cell">
+                    <div class="icon c2">绿</div>
+                    <div class="info">
+                      <div class="nm">绿城桃源里</div>
+                      <div class="meta">
+                        <span class="tag scale">中盘</span>
+                        <span class="tag lv lv-sun">向日葵</span>
+                        <span class="tag type type-on">明查</span>
+                      </div>
+                    </div>
+                  </div>
+                </td>
+                <td>
+                  <div class="insp-cell">
+                    <div class="av c3">王</div>
+                    <span>王伟</span>
+                  </div>
+                </td>
+                <td>2026-05-08 17:00</td>
+                <td><span class="score-cell" style="color:var(--text-3);">— —</span></td>
+                <td><span class="tag st-draft">待提交</span></td>
+                <td><span class="op-link" onclick="openDetail()">查看详情</span></td>
+              </tr>
+              <tr>
+                <td>7</td>
+                <td>
+                  <div class="proj-cell">
+                    <div class="icon c1">时</div>
+                    <div class="info">
+                      <div class="nm">时代外滩</div>
+                      <div class="meta">
+                        <span class="tag scale">小盘</span>
+                        <span class="tag lv lv-sun">向日葵</span>
+                        <span class="tag type type-off">暗查</span>
+                      </div>
+                    </div>
+                  </div>
+                </td>
+                <td>
+                  <div class="insp-cell">
+                    <div class="av">张</div>
+                    <span>张明</span>
+                  </div>
+                </td>
+                <td>2026-05-04 09:30</td>
+                <td><span class="score-cell green">92.1<small style="font-size:13px;opacity:0.6;">%</small></span></td>
+                <td><span class="tag st-done">已完成</span></td>
+                <td><span class="op-link" onclick="openDetail()">查看详情</span></td>
+              </tr>
+              <tr>
+                <td>8</td>
+                <td>
+                  <div class="proj-cell">
+                    <div class="icon c4">时</div>
+                    <div class="info">
+                      <div class="nm">时代糖果</div>
+                      <div class="meta">
+                        <span class="tag scale">中盘</span>
+                        <span class="tag lv lv-sun">向日葵</span>
+                        <span class="tag type type-on">明查</span>
+                      </div>
+                    </div>
+                  </div>
+                </td>
+                <td>
+                  <div class="insp-cell">
+                    <div class="av c2">李</div>
+                    <span>李娜</span>
+                  </div>
+                </td>
+                <td>2026-05-03 14:15</td>
+                <td><span class="score-cell blue">87.5<small style="font-size:13px;opacity:0.6;">%</small></span></td>
+                <td><span class="tag st-proj">待项目确定</span></td>
+                <td><span class="op-link" onclick="openDetail()">查看详情</span></td>
+              </tr>
+              <tr>
+                <td>9</td>
+                <td>
+                  <div class="proj-cell">
+                    <div class="icon c3">时</div>
+                    <div class="info">
+                      <div class="nm">时代倾城</div>
+                      <div class="meta">
+                        <span class="tag scale">大盘</span>
+                        <span class="tag lv lv-sun">向日葵</span>
+                        <span class="tag type type-on">明查</span>
+                      </div>
+                    </div>
+                  </div>
+                </td>
+                <td>
+                  <div class="insp-cell">
+                    <div class="av c4">陈</div>
+                    <span>陈晓燕</span>
+                  </div>
+                </td>
+                <td>2026-05-02 10:50</td>
+                <td><span class="score-cell green">90.8<small style="font-size:13px;opacity:0.6;">%</small></span></td>
+                <td><span class="tag st-done">已完成</span></td>
+                <td><span class="op-link" onclick="openDetail()">查看详情</span></td>
+              </tr>
+              <tr>
+                <td>10</td>
+                <td>
+                  <div class="proj-cell">
+                    <div class="icon c5">时</div>
+                    <div class="info">
+                      <div class="nm">时代春树里</div>
+                      <div class="meta">
+                        <span class="tag scale">小盘</span>
+                        <span class="tag lv lv-tulip">郁金香</span>
+                        <span class="tag type type-on">明查</span>
+                      </div>
+                    </div>
+                  </div>
+                </td>
+                <td>
+                  <div class="insp-cell">
+                    <div class="av c5">林</div>
+                    <span>林佳</span>
+                  </div>
+                </td>
+                <td>2026-05-01 16:42</td>
+                <td><span class="score-cell warn">83.2<small style="font-size:13px;opacity:0.6;">%</small></span></td>
+                <td><span class="tag st-done">已完成</span></td>
+                <td><span class="op-link" onclick="openDetail()">查看详情</span></td>
+              </tr>
+            </tbody>
+          </table>
+
+          <div class="pagination">
+            <span class="total">共 186 条</span>
+            <button class="page-btn">‹</button>
+            <button class="page-btn active">1</button>
+            <button class="page-btn">2</button>
+            <button class="page-btn">3</button>
+            <button class="page-btn">4</button>
+            <button class="page-btn">5</button>
+            <span class="ellipsis">···</span>
+            <button class="page-btn">19</button>
+            <button class="page-btn">›</button>
+            <select class="select" style="width:100px;height:32px;">
+              <option>10 条/页</option>
+              <option>20 条/页</option>
+              <option>50 条/页</option>
+            </select>
+            <span class="jumper">跳至 <input value="1" /> 页</span>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </main>
+
+</div>
+
+<!-- 详情抽屉 -->
+<div class="drawer-mask hidden" id="detailDrawer">
+  <div class="drawer">
+    <div class="drawer-head">
+      <div class="title">检查详情 · 金百合花园 · 三期</div>
+      <span class="close" onclick="document.getElementById('detailDrawer').classList.add('hidden')">×</span>
+    </div>
+    <div class="drawer-body">
+
+      <!-- 顶部信息栏 -->
+      <div class="detail-meta-bar">
+        <div class="meta-item">
+          <div class="lab">项目</div>
+          <div class="val">金百合 · 中盘</div>
+        </div>
+        <div class="meta-item">
+          <div class="lab">检查员</div>
+          <div class="val">张明 · 明查</div>
+        </div>
+        <div class="meta-item">
+          <div class="lab">检查时间</div>
+          <div class="val">2026-05-08 14:32</div>
+        </div>
+        <div class="meta-item">
+          <div class="lab">状态</div>
+          <div class="val"><span class="tag st-hq">待总部审核</span></div>
+        </div>
+        <div class="meta-item">
+          <div class="lab">最终得分率</div>
+          <div class="val big">82.3<small>%</small></div>
+        </div>
+      </div>
+
+      <!-- 详情 Tab -->
+      <div class="detail-tabs">
+        <div class="tab" data-dview="redline">红线问题<span class="num">2</span></div>
+        <div class="tab active" data-dview="score">评分表</div>
+        <div class="tab" data-dview="summary">检查总结</div>
+      </div>
+
+      <!-- 视图：红线问题 -->
+      <div class="detail-view hidden" id="dview-redline">
+        <div class="d-summary-strip">
+          <div>
+            <div class="lbl">⚠️ 已触发红线问题</div>
+            <div class="desc">触及红线在项目总分基础上倒扣 5 分</div>
+          </div>
+          <div>
+            <div class="num">-5<small style="font-size:14px;">分</small></div>
+            <div class="unit">2 项已触发</div>
+          </div>
+        </div>
+
+        <!-- 事故安全 -->
+        <div class="d-group">
+          <div class="d-group-head">
+            <div class="gic c1">事</div>
+            <div class="nm">事故安全</div>
+            <div class="ct">已触发 <em>1</em> / 4 项</div>
+          </div>
+
+          <div class="d-redline-item">
+            <div class="d-ri-top">
+              <div class="idx">1</div>
+              <div class="body">
+                <div class="r-title">公共区域致人伤亡安全隐患</div>
+                <div class="r-desc">井盖缺失 / 破损面积超过一半、存在 1 处高空坠物风险、电线外露无包扎</div>
+                <div class="r-note"><b>说明：</b>处理所需时间较长但已制定有效管控措施及应急预案并落实,可免除扣分。</div>
+              </div>
+              <span class="badge ok">未触发</span>
+            </div>
+            <div class="d-ri-form">
+              <span class="lbl">扣分处数</span>
+              <span class="num">0</span>
+            </div>
+          </div>
+
+          <div class="d-redline-item triggered">
+            <div class="d-ri-top">
+              <div class="idx">2</div>
+              <div class="body">
+                <div class="r-title">机房门锁未有效关闭</div>
+                <div class="r-desc">电梯机房 / 水泵房 / 配电室 1 处,或其余机房（不含水电井）3 处及以上</div>
+              </div>
+              <span class="badge bad">已触发</span>
+            </div>
+            <div class="d-ri-form">
+              <span class="lbl">扣分处数</span>
+              <span class="num bad">2</span>
+            </div>
+            <div class="d-ri-content">
+              <div class="desc-text">2 号楼水泵房门锁未锁,3 号楼配电室门锁松动。</div>
+              <div class="d-photos">
+                <div class="d-photo"></div>
+                <div class="d-photo"></div>
+                <div class="d-photo"></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="d-redline-item">
+            <div class="d-ri-top">
+              <div class="idx">3</div>
+              <div class="body">
+                <div class="r-title">装修监管严重失职</div>
+                <div class="r-desc">私自开工装修 / 有严重消防安全隐患 / 拆改室内外承重结构 / 破坏建筑主体结构等</div>
+              </div>
+              <span class="badge ok">未触发</span>
+            </div>
+            <div class="d-ri-form"><span class="lbl">扣分处数</span><span class="num">0</span></div>
+          </div>
+
+          <div class="d-redline-item">
+            <div class="d-ri-top">
+              <div class="idx">4</div>
+              <div class="body">
+                <div class="r-title">危险物品管理不当</div>
+                <div class="r-desc">消杀药品管理不清、清洁剂储藏不当、汽油 / 柴油 / 油漆等易燃易爆品管理不当</div>
+              </div>
+              <span class="badge ok">未触发</span>
+            </div>
+            <div class="d-ri-form"><span class="lbl">扣分处数</span><span class="num">0</span></div>
+          </div>
+        </div>
+
+        <!-- 消防安全 -->
+        <div class="d-group">
+          <div class="d-group-head">
+            <div class="gic c2">消</div>
+            <div class="nm">消防安全</div>
+            <div class="ct">已触发 <em>1</em> / 4 项</div>
+          </div>
+
+          <div class="d-redline-item">
+            <div class="d-ri-top">
+              <div class="idx">5</div>
+              <div class="body">
+                <div class="r-title">消防通道堵塞</div>
+                <div class="r-desc">消防通道被杂物或车辆堵塞不通</div>
+              </div>
+              <span class="badge ok">未触发</span>
+            </div>
+            <div class="d-ri-form"><span class="lbl">扣分处数</span><span class="num">0</span></div>
+          </div>
+
+          <div class="d-redline-item">
+            <div class="d-ri-top">
+              <div class="idx">6</div>
+              <div class="body">
+                <div class="r-title">电梯中控无人应答</div>
+                <div class="r-desc">1 台电梯中控测试 2 分钟均无人应答</div>
+                <div class="r-note"><b>说明：</b>如已发现问题、已报修且有相应有效管理措施及提醒,可不进行红线扣分。</div>
+              </div>
+              <span class="badge ok">未触发</span>
+            </div>
+            <div class="d-ri-form"><span class="lbl">扣分处数</span><span class="num">0</span></div>
+          </div>
+
+          <div class="d-redline-item triggered">
+            <div class="d-ri-top">
+              <div class="idx">7</div>
+              <div class="body">
+                <div class="r-title">电动车违规停放 / 飞线充电</div>
+                <div class="r-desc">楼宇内达 3 处及以上电动车停放,或园区（商业街除外）1 处飞线充电</div>
+              </div>
+              <span class="badge bad">已触发</span>
+            </div>
+            <div class="d-ri-form">
+              <span class="lbl">扣分处数</span>
+              <span class="num bad">1</span>
+            </div>
+            <div class="d-ri-content">
+              <div class="desc-text">A 区 5 栋楼下存在飞线充电现象。</div>
+              <div class="d-photos">
+                <div class="d-photo"></div>
+                <div class="d-photo"></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="d-redline-item">
+            <div class="d-ri-top">
+              <div class="idx">8</div>
+              <div class="body">
+                <div class="r-title">消防栓水压不足或无水</div>
+                <div class="r-desc">项目园区、楼栋天面、地库任意 1 处消防栓试水水压不足或无水</div>
+              </div>
+              <span class="badge ok">未触发</span>
+            </div>
+            <div class="d-ri-form"><span class="lbl">扣分处数</span><span class="num">0</span></div>
+          </div>
+        </div>
+
+        <!-- 清洁卫生 -->
+        <div class="d-group">
+          <div class="d-group-head">
+            <div class="gic c3">清</div>
+            <div class="nm">清洁卫生</div>
+            <div class="ct">已触发 <em>0</em> / 1 项</div>
+          </div>
+          <div class="d-redline-item">
+            <div class="d-ri-top">
+              <div class="idx">9</div>
+              <div class="body">
+                <div class="r-title">大量垃圾堆放且有异味</div>
+                <div class="r-desc">园区主干道、休闲活动区域有 1m³ 及以上的垃圾堆放,且有明显异味</div>
+              </div>
+              <span class="badge ok">未触发</span>
+            </div>
+            <div class="d-ri-form"><span class="lbl">扣分处数</span><span class="num">0</span></div>
+          </div>
+        </div>
+
+        <!-- 人员服务 -->
+        <div class="d-group">
+          <div class="d-group-head">
+            <div class="gic c4">服</div>
+            <div class="nm">人员服务</div>
+            <div class="ct">已触发 <em>0</em> / 2 项</div>
+          </div>
+          <div class="d-redline-item">
+            <div class="d-ri-top">
+              <div class="idx">10</div>
+              <div class="body">
+                <div class="r-title">服务人员仪容仪表不规范</div>
+                <div class="r-desc">未着工装（含管理层）,或仪容严重不规范</div>
+              </div>
+              <span class="badge ok">未触发</span>
+            </div>
+            <div class="d-ri-form"><span class="lbl">扣分处数</span><span class="num">0</span></div>
+          </div>
+          <div class="d-redline-item">
+            <div class="d-ri-top">
+              <div class="idx">11</div>
+              <div class="body">
+                <div class="r-title">服务态度恶劣 / 辱骂业主</div>
+                <div class="r-desc">人员服务态度恶劣,存在辱骂业主行为</div>
+              </div>
+              <span class="badge ok">未触发</span>
+            </div>
+            <div class="d-ri-form"><span class="lbl">扣分处数</span><span class="num">0</span></div>
+          </div>
+        </div>
+
+        <!-- 其他 -->
+        <div class="d-group">
+          <div class="d-group-head">
+            <div class="gic c5">他</div>
+            <div class="nm">其他</div>
+            <div class="ct">已触发 <em>0</em> / 1 项</div>
+          </div>
+          <div class="d-redline-item">
+            <div class="d-ri-top">
+              <div class="idx">12</div>
+              <div class="body">
+                <div class="r-title">其他严重影响行为</div>
+                <div class="r-desc">其他可能严重影响公司利益或影响客户感受的行为,由总裁办认定</div>
+              </div>
+              <span class="badge ok">未触发</span>
+            </div>
+            <div class="d-ri-form"><span class="lbl">扣分处数</span><span class="num">0</span></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 视图：评分表 -->
+      <div class="detail-view" id="dview-score">
+        <div class="d-score-overview">
+          <div class="total">
+            <div class="lbl">最终总得分率（含红线倒扣 5 分）</div>
+            <div class="num">82.3<small>%</small></div>
+            <div class="formula">基础得分率 87.3% − 红线倒扣 5.0% = 最终 82.3%</div>
+          </div>
+          <div class="d-modules">
+            <div class="d-module-cell"><div class="mn">环境卫生 30%</div><div class="mv">88.5%<small>14 项</small></div></div>
+            <div class="d-module-cell"><div class="mn">安全管理 15%</div><div class="mv green">92.0%<small>17 项</small></div></div>
+            <div class="d-module-cell"><div class="mn">设施设备 20%</div><div class="mv">85.2%<small>16 项</small></div></div>
+            <div class="d-module-cell"><div class="mn">绿化养护 15%</div><div class="mv green">90.0%<small>6 项</small></div></div>
+            <div class="d-module-cell"><div class="mn">客户服务 20%</div><div class="mv warn">81.7%<small>15 项</small></div></div>
+            <div class="d-module-cell"><div class="mn">总指标数</div><div class="mv">68<small>项</small></div></div>
+          </div>
+        </div>
+
+        <div class="d-mod-filter">
+          <div class="chip active">全部<span class="n">68</span></div>
+          <div class="chip">环境卫生<span class="n">14</span></div>
+          <div class="chip">安全管理<span class="n">17</span></div>
+          <div class="chip">设施设备<span class="n">16</span></div>
+          <div class="chip">绿化养护<span class="n">6</span></div>
+          <div class="chip">客户服务<span class="n">15</span></div>
+          <div class="chip" style="margin-left:auto;background:#fff7e6;color:#d48806;">仅看扣分项<span class="n">12</span></div>
+        </div>
+
+        <!-- A1 扣分项 -->
+        <div class="d-score-item deducted">
+          <div class="si-head">
+            <span class="si-code">A1</span>
+            <span class="si-mod">环境卫生 / 整洁</span>
+            <span class="si-w">权重 5%</span>
+          </div>
+          <div class="si-name">垃圾桶无外溢</div>
+          <div class="si-rule">
+            <span class="lab">巡视标准：</span>主出入口周边、主要人流动线周边及抽检楼栋,垃圾桶无外溢
+            <span class="ded">扣分规则：0–9 处线性扣分,9 处及以上归 0</span>
+          </div>
+          <div class="si-row">
+            <span class="l">扣分处数</span>
+            <span class="num-box bad">2</span>
+          </div>
+          <div class="si-row">
+            <span class="l">本项得分率</span>
+            <span class="v warn">77.8%</span>
+          </div>
+          <div class="si-explain">3 号楼东侧垃圾桶外溢,周边散落垃圾袋约 0.5m³。</div>
+          <div class="d-photos">
+            <div class="d-photo"></div>
+            <div class="d-photo"></div>
+          </div>
+        </div>
+
+        <!-- A2 满分项 -->
+        <div class="d-score-item">
+          <div class="si-head">
+            <span class="si-code">A2</span>
+            <span class="si-mod">环境卫生 / 整洁</span>
+            <span class="si-w">权重 5%</span>
+          </div>
+          <div class="si-name">垃圾桶干净整洁</div>
+          <div class="si-rule">
+            <span class="lab">巡视标准：</span>垃圾桶外侧干净,无明显污渍
+            <span class="ded">扣分规则：2–9 处线性扣分,9 处及以上归 0</span>
+          </div>
+          <div class="si-row"><span class="l">扣分处数</span><span class="num-box">0</span></div>
+          <div class="si-row"><span class="l">本项得分率</span><span class="v green">100%</span></div>
+        </div>
+
+        <!-- A3 满分项 -->
+        <div class="d-score-item">
+          <div class="si-head">
+            <span class="si-code">A3</span>
+            <span class="si-mod">环境卫生 / 整洁</span>
+            <span class="si-w">权重 5%</span>
+          </div>
+          <div class="si-name">垃圾桶周边干净整洁</div>
+          <div class="si-rule">
+            <span class="lab">巡视标准：</span>垃圾桶周边干净,打包垃圾体积不超过 1 立方米
+            <span class="ded">扣分规则：0–6 处线性扣分,6 处及以上归 0</span>
+          </div>
+          <div class="si-row"><span class="l">扣分处数</span><span class="num-box">0</span></div>
+          <div class="si-row"><span class="l">本项得分率</span><span class="v green">100%</span></div>
+        </div>
+
+        <!-- A5 扣分项 -->
+        <div class="d-score-item deducted">
+          <div class="si-head">
+            <span class="si-code">A5</span>
+            <span class="si-mod">环境卫生 / 卫生保洁</span>
+            <span class="si-w">权重 10%</span>
+          </div>
+          <div class="si-name">小区周边无漂浮垃圾</div>
+          <div class="si-rule">
+            <span class="lab">巡视标准：</span>无漂浮垃圾（含植物悬挂的垃圾、衣服等杂物）;1m² 内的漂浮垃圾算一处
+            <span class="ded">中盘扣分规则：3–22 处线性扣分,22 处及以上归 0</span>
+          </div>
+          <div class="si-row"><span class="l">扣分处数</span><span class="num-box bad">5</span></div>
+          <div class="si-row"><span class="l">本项得分率</span><span class="v warn">89.5%</span></div>
+          <div class="si-explain">小区西门外绿化带漂浮垃圾 5 处,主要为塑料袋、烟盒。</div>
+          <div class="d-photos">
+            <div class="d-photo"></div>
+          </div>
+        </div>
+
+        <!-- B1 扣分项 -->
+        <div class="d-score-item deducted">
+          <div class="si-head">
+            <span class="si-code">B1</span>
+            <span class="si-mod" style="background:#fff2e8;color:#d46b08;">安全管理 / 消防</span>
+            <span class="si-w">权重 8%</span>
+          </div>
+          <div class="si-name">消防设施完好率</div>
+          <div class="si-rule">
+            <span class="lab">巡视标准：</span>消防设施齐全、完好,标识清晰,定期检测记录完整
+            <span class="ded">扣分规则：0–4 处线性扣分,4 处及以上归 0</span>
+          </div>
+          <div class="si-row"><span class="l">扣分处数</span><span class="num-box bad">1</span></div>
+          <div class="si-row"><span class="l">本项得分率</span><span class="v warn">75.0%</span></div>
+          <div class="si-explain">B 区地库灭火器 1 处压力表读数偏低,需更换。</div>
+          <div class="d-photos">
+            <div class="d-photo"></div>
+          </div>
+        </div>
+
+        <!-- C1 满分项 -->
+        <div class="d-score-item">
+          <div class="si-head">
+            <span class="si-code">C1</span>
+            <span class="si-mod" style="background:#f9f0ff;color:#722ed1;">设施设备 / 电梯</span>
+            <span class="si-w">权重 8%</span>
+          </div>
+          <div class="si-name">电梯运行正常</div>
+          <div class="si-rule">
+            <span class="lab">巡视标准：</span>电梯运行平稳,按钮、显示屏、对讲完好;年检证齐全
+            <span class="ded">扣分规则：0–3 处线性扣分,3 处及以上归 0</span>
+          </div>
+          <div class="si-row"><span class="l">扣分处数</span><span class="num-box">0</span></div>
+          <div class="si-row"><span class="l">本项得分率</span><span class="v green">100%</span></div>
+        </div>
+
+        <!-- E1 扣分项 -->
+        <div class="d-score-item deducted">
+          <div class="si-head">
+            <span class="si-code">E1</span>
+            <span class="si-mod" style="background:#fff0f6;color:#c41d7f;">客户服务 / 前台</span>
+            <span class="si-w">权重 5%</span>
+          </div>
+          <div class="si-name">客服中心规范</div>
+          <div class="si-rule">
+            <span class="lab">巡视标准：</span>客服中心环境整洁,接待用语规范,业主诉求 24 小时内响应
+            <span class="ded">扣分规则：0–3 处线性扣分,3 处及以上归 0</span>
+          </div>
+          <div class="si-row"><span class="l">扣分处数</span><span class="num-box bad">1</span></div>
+          <div class="si-row"><span class="l">本项得分率</span><span class="v warn">66.7%</span></div>
+          <div class="si-explain">前台电话响铃 5 声未接,接待用语未做标准问候。</div>
+        </div>
+
+        <div style="text-align:center;color:var(--text-3);font-size:12px;padding:14px 0;">
+          —— 共 68 项指标,以上为扣分项及代表性项,完整数据可下载报告查看 ——
+        </div>
+      </div>
+
+      <!-- 视图：检查总结 -->
+      <div class="detail-view hidden" id="dview-summary">
+        <div class="d-score-item">
+          <div class="si-name" style="margin-bottom:12px;">检查员总结</div>
+          <div style="color:var(--text-2);font-size:14px;line-height:1.8;background:#fff;padding:14px 16px;border-radius:6px;">
+            本次检查发现 2 项红线问题已触发,主要集中在机房门锁管理及电动车飞线充电方面,需限期整改;评分模块中客户服务得分相对较低,建议加强人员培训。
+          </div>
+        </div>
+        <div class="d-score-item">
+          <div class="si-name" style="margin-bottom:12px;">总部审核意见</div>
+          <textarea placeholder="请输入审核意见..." style="width:100%;min-height:100px;padding:10px 12px;border:1px solid var(--border);border-radius:4px;font-size:13px;font-family:inherit;line-height:1.6;outline:none;resize:vertical;"></textarea>
+        </div>
+        <div class="d-score-item">
+          <div class="si-name" style="margin-bottom:12px;">操作记录</div>
+          <div style="font-size:13px;color:var(--text-2);line-height:2;background:#fff;padding:14px 16px;border-radius:6px;">
+            <div>• 2026-05-08 14:32 张明 创建检查任务</div>
+            <div>• 2026-05-08 17:08 张明 提交检查报告</div>
+            <div>• 2026-05-08 17:08 系统 状态变更为「待总部审核」</div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+    <div class="drawer-foot">
+      <button class="btn" onclick="document.getElementById('detailDrawer').classList.add('hidden')">关闭</button>
+      <button class="btn"><span>⤒</span>下载报告</button>
+      <button class="btn danger">驳回</button>
+      <button class="btn primary">审核通过</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  // 状态 tab 切换
+  document.querySelectorAll('.status-tabs .tab').forEach(t => {
+    t.addEventListener('click', () => {
+      document.querySelectorAll('.status-tabs .tab').forEach(x => x.classList.remove('active'));
+      t.classList.add('active');
+    });
+  });
+
+  // 打开详情
+  function openDetail() {
+    document.getElementById('detailDrawer').classList.remove('hidden');
+  }
+
+  // 详情 Tab 切换
+  document.querySelectorAll('.detail-tabs .tab').forEach(t => {
+    t.addEventListener('click', () => {
+      document.querySelectorAll('.detail-tabs .tab').forEach(x => x.classList.remove('active'));
+      t.classList.add('active');
+      const view = t.dataset.dview;
+      document.querySelectorAll('.detail-view').forEach(v => v.classList.add('hidden'));
+      document.getElementById('dview-' + view).classList.remove('hidden');
+    });
+  });
+
+  // 模块筛选 chip
+  document.querySelectorAll('.d-mod-filter .chip').forEach(c => {
+    c.addEventListener('click', () => {
+      document.querySelectorAll('.d-mod-filter .chip').forEach(x => x.classList.remove('active'));
+      c.classList.add('active');
+    });
+  });
+
+  // 点击遮罩关闭
+  document.getElementById('detailDrawer').addEventListener('click', (e) => {
+    if (e.target.id === 'detailDrawer') {
+      document.getElementById('detailDrawer').classList.add('hidden');
+    }
+  });
+</script>
+
+</body>
+</html>
