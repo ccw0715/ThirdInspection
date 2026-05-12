@@ -33,19 +33,23 @@
     line-height: 1.5;
   }
 
-  /* 设计稿外层 - 模拟手机 */
+  /* 设计稿外层 - 模拟手机（自适应多行） */
   .stage {
     min-height: 100vh;
     display: flex;
+    flex-wrap: wrap;
     justify-content: center;
+    align-items: flex-start;
+    gap: 24px;
     background: #eceff3;
-    padding: 24px 0;
+    padding: 24px;
   }
   .phone {
-    width: 100%;
-    max-width: 420px;
+    width: 380px;
+    max-width: 100%;
+    min-height: 720px;
+    flex-shrink: 0;
     background: var(--bg);
-    min-height: calc(100vh - 48px);
     border-radius: 24px;
     box-shadow: 0 12px 48px rgba(0,0,0,0.12);
     overflow: hidden;
@@ -54,8 +58,8 @@
     flex-direction: column;
   }
   @media (max-width: 480px) {
-    .stage { padding: 0; background: var(--bg); }
-    .phone { border-radius: 0; box-shadow: none; max-width: 100%; min-height: 100vh; }
+    .stage { padding: 0; gap: 0; background: var(--bg); }
+    .phone { border-radius: 0; box-shadow: none; width: 100%; max-width: 100%; min-height: 100vh; }
   }
 
   /* 顶部状态栏 */
@@ -1643,10 +1647,6 @@
           <div class="v">3</div>
           <div class="l">待提交</div>
         </div>
-        <div class="cell">
-          <div class="v">88.7%</div>
-          <div class="l">平均得分率</div>
-        </div>
       </div>
     </div>
 
@@ -1672,7 +1672,6 @@
       <div class="home-section">
         <div class="sec-head">
           <span class="nm">最近检查记录</span>
-          <span class="more">查看全部 ›</span>
         </div>
 
         <div class="history-item">
