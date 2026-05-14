@@ -1296,6 +1296,92 @@
   }
   .review-card .sign-row b { color: var(--text); font-weight: 500; }
 
+  /* 项目方反驳意见卡 */
+  .rebuttal-card {
+    background: linear-gradient(135deg, #fff1f0 0%, #fff7e6 100%);
+    border: 1px solid #ffccc7;
+    border-left: 4px solid var(--danger);
+    border-radius: var(--radius);
+    padding: 14px;
+    margin: 0 12px 12px;
+  }
+  .rebuttal-card .rb-head {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 8px;
+  }
+  .rebuttal-card .rb-head .ic {
+    width: 24px; height: 24px;
+    background: var(--danger);
+    color: #fff;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    flex-shrink: 0;
+  }
+  .rebuttal-card .rb-head .title {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--danger);
+  }
+  .rebuttal-card .rb-head .stamp {
+    margin-left: auto;
+    font-size: 11px;
+    color: var(--text-3);
+  }
+  .rebuttal-card .rb-content {
+    background: #fff;
+    border-radius: 6px;
+    padding: 10px 12px;
+    font-size: 13px;
+    color: var(--text);
+    line-height: 1.7;
+    margin-bottom: 10px;
+  }
+  .rebuttal-card .rb-dispute-list {
+    margin: 0;
+    padding-left: 0;
+    list-style: none;
+  }
+  .rebuttal-card .rb-dispute-list li {
+    background: #fff;
+    border-radius: 6px;
+    padding: 8px 10px;
+    margin-bottom: 6px;
+    font-size: 12px;
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+  }
+  .rebuttal-card .rb-dispute-list li:last-child { margin-bottom: 0; }
+  .rebuttal-card .rb-dispute-list .lab {
+    background: #fff1f0;
+    color: var(--danger);
+    border-radius: 3px;
+    padding: 1px 6px;
+    font-size: 11px;
+    font-weight: 600;
+    flex-shrink: 0;
+  }
+  .rebuttal-card .rb-dispute-list .text {
+    color: var(--text-2);
+    line-height: 1.55;
+  }
+  .rebuttal-card .rb-sign {
+    display: flex;
+    justify-content: space-between;
+    font-size: 12px;
+    color: var(--text-3);
+    margin-top: 8px;
+  }
+  .rebuttal-card .rb-sign b {
+    color: var(--text);
+    font-weight: 500;
+  }
+
   /* 操作记录时间线 */
   .timeline-card {
     background: #fff;
@@ -2457,15 +2543,45 @@
     </div>
 
     <!-- 状态条 -->
-    <div class="detail-status hq">
-      <div class="st-icon">⏳</div>
+    <div class="detail-status" style="border-left:4px solid var(--danger);">
+      <div class="st-icon" style="background:#fff1f0;color:var(--danger);">⚠️</div>
       <div class="body">
-        <div class="st-label">待总部审核</div>
-        <div class="st-meta">提交于 2026-05-08 17:08</div>
+        <div class="st-label" style="color:var(--danger);">项目方有异议</div>
+        <div class="st-meta">项目经理已反驳 · 待您处理</div>
       </div>
       <div class="st-score">
         <div class="v">82.3<span style="font-size:13px;opacity:0.6;">%</span></div>
         <div class="l">最终得分率</div>
+      </div>
+    </div>
+
+    <!-- 项目方反驳意见 -->
+    <div class="rebuttal-card">
+      <div class="rb-head">
+        <div class="ic">!</div>
+        <div class="title">项目方反驳意见</div>
+        <div class="stamp">2026-05-09 10:24</div>
+      </div>
+      <div class="rb-content">
+        已收到检查报告,经核实部分扣分项情况与现场不符,具体异议如下,请协助复核。
+      </div>
+      <ul class="rb-dispute-list">
+        <li>
+          <span class="lab">A1</span>
+          <span class="text">3 号楼东侧垃圾桶外溢问题,经核实为业主临时倾倒,已于检查后 15 分钟内清理完毕,建议不计入扣分。</span>
+        </li>
+        <li>
+          <span class="lab">红线 2</span>
+          <span class="text">配电室门锁松动属于备用门锁,已有有效管控措施(电子门禁),建议参照红线问题免责条款。</span>
+        </li>
+        <li>
+          <span class="lab">B1</span>
+          <span class="text">地库灭火器压力表读数偏低系当日早高峰短时使用导致,已在 2 小时内完成更换,可提供更换记录。</span>
+        </li>
+      </ul>
+      <div class="rb-sign">
+        <span>项目经理：<b>李华</b>（金辉物业）</span>
+        <span>2026-05-09</span>
       </div>
     </div>
 
