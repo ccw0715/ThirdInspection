@@ -645,6 +645,28 @@
 
   .score-item.deducted { border-left: 3px solid var(--warning); }
 
+  /* 扣分点位网格 */
+  /* 网格地点下拉 */
+  .loc-select {
+    height: 36px;
+    min-width: 140px;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 0 30px 0 12px;
+    font-size: 14px;
+    color: var(--text);
+    background: #fff;
+    outline: none;
+    font-family: inherit;
+    appearance: none;
+    -webkit-appearance: none;
+    background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 12 12"><path d="M2 4.5l4 4 4-4" stroke="%2386909c" stroke-width="1.4" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>');
+    background-repeat: no-repeat;
+    background-position: right 10px center;
+  }
+  .loc-select:focus { border-color: var(--primary); }
+  .loc-select.placeholder { color: var(--text-3); }
+
   /* 底部操作栏 */
   .bottom-bar {
     position: fixed;
@@ -2305,6 +2327,17 @@
           </div>
         </div>
         <div class="form-row">
+          <span class="lbl">网格地点</span>
+          <div style="margin-left:auto;">
+            <select class="loc-select">
+              <option value="">请选择</option>
+              <option>园林</option>
+              <option>洋房</option>
+              <option selected>建筑物</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-row">
           <span class="lbl">本项得分率</span>
           <span class="val" style="color:var(--warning);font-weight:600;">77.8%</span>
         </div>
@@ -2340,6 +2373,17 @@
           </div>
         </div>
         <div class="form-row">
+          <span class="lbl">网格地点</span>
+          <div style="margin-left:auto;">
+            <select class="loc-select placeholder">
+              <option value="" selected>请选择</option>
+              <option>园林</option>
+              <option>洋房</option>
+              <option>建筑物</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-row">
           <span class="lbl">本项得分率</span>
           <span class="val" style="color:var(--success);font-weight:600;">100%</span>
         </div>
@@ -2364,6 +2408,17 @@
           </div>
         </div>
         <div class="form-row">
+          <span class="lbl">网格地点</span>
+          <div style="margin-left:auto;">
+            <select class="loc-select placeholder">
+              <option value="" selected>请选择</option>
+              <option>园林</option>
+              <option>洋房</option>
+              <option>建筑物</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-row">
           <span class="lbl">本项得分率</span>
           <span class="val" style="color:var(--success);font-weight:600;">100%</span>
         </div>
@@ -2385,6 +2440,14 @@
           <span class="lbl">扣分处数</span>
           <div style="margin-left:auto;">
             <div class="stepper"><button>−</button><input value="5" /><button>+</button></div>
+          </div>
+        </div>
+        <div class="loc-block">
+          <div class="loc-label">扣分点位（可多选）</div>
+          <div class="loc-grid">
+            <div class="loc-chip active">园林</div>
+            <div class="loc-chip">洋房</div>
+            <div class="loc-chip">建筑物</div>
           </div>
         </div>
         <div class="form-row">
@@ -2951,6 +3014,11 @@
         opt.classList.add('active');
       });
     });
+  });
+
+  // 扣分点位多选切换
+  document.querySelectorAll('.loc-chip').forEach(c => {
+    c.addEventListener('click', () => c.classList.toggle('active'));
   });
 
   // 审核意见切换
