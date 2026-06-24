@@ -192,6 +192,57 @@
   }
   .tabs .tab.active .badge { background: #fff; color: var(--primary); }
 
+  /* 搜索栏（上报页：红线 / 评分） */
+  .report-search {
+    margin: 0 12px 12px;
+    position: relative;
+  }
+  .report-search .ic {
+    position: absolute;
+    left: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 14px;
+    color: var(--text-3);
+    pointer-events: none;
+  }
+  .report-search input {
+    width: 100%;
+    height: 38px;
+    border: none;
+    border-radius: var(--radius);
+    background: #fff;
+    padding: 0 36px;
+    font-size: 13px;
+    color: var(--text);
+    outline: none;
+    font-family: inherit;
+  }
+  .report-search input::placeholder { color: var(--text-3); }
+  .report-search .clear {
+    position: absolute;
+    right: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 18px; height: 18px;
+    line-height: 18px;
+    text-align: center;
+    border-radius: 50%;
+    background: var(--text-4);
+    color: #fff;
+    font-size: 12px;
+    cursor: pointer;
+    display: none;
+  }
+  .report-search.has-text .clear { display: block; }
+  .search-empty {
+    display: none;
+    text-align: center;
+    color: var(--text-3);
+    font-size: 13px;
+    padding: 40px 0;
+  }
+
   /* 内容区 */
   .content {
     flex: 1;
@@ -874,6 +925,16 @@
     width: 6px; height: 6px;
     background: #ff4d4f;
     border-radius: 50%;
+  }
+  .home-greet .logout {
+    font-size: 13px;
+    color: #fff;
+    padding: 5px 12px;
+    border: 1px solid rgba(255,255,255,0.5);
+    border-radius: 14px;
+    background: rgba(255,255,255,0.15);
+    white-space: nowrap;
+    cursor: pointer;
   }
   .home-stats {
     display: grid;
@@ -1687,7 +1748,7 @@
 <div class="stage">
 
   <!-- 页面 -1: 登录 -->
-  <div class="phone">
+  <div class="phone" id="loginScreen">
     <div class="statusbar" style="background:transparent;color:#fff;">
       <span>9:41</span>
       <span class="icons">●●● 5G ▮▮</span>
@@ -1744,6 +1805,7 @@
           <div class="role">第三方检查员 · 华南区</div>
         </div>
         <span class="bell">🔔</span>
+        <span class="logout" onclick="document.getElementById('loginScreen').scrollIntoView({behavior:'smooth'})">退出</span>
       </div>
 
       <div class="home-stats">
@@ -1925,7 +1987,14 @@
       <div class="tab">评分表</div>
     </div>
 
-    <div class="content">
+    <div class="content" data-search-scope="redline">
+
+      <!-- 搜索 -->
+      <div class="report-search">
+        <span class="ic">🔍</span>
+        <input type="text" placeholder="搜索红线问题..." oninput="filterItems(this)" />
+        <span class="clear" onclick="clearSearch(this)">×</span>
+      </div>
 
       <!-- 红线提示 -->
       <div class="summary-strip">
@@ -2263,7 +2332,14 @@
       <div class="tab active">评分表</div>
     </div>
 
-    <div class="content">
+    <div class="content" data-search-scope="score">
+
+      <!-- 搜索 -->
+      <div class="report-search">
+        <span class="ic">🔍</span>
+        <input type="text" placeholder="搜索评分表问题（编号 / 指标 / 模块）..." oninput="filterItems(this)" />
+        <span class="clear" onclick="clearSearch(this)">×</span>
+      </div>
 
       <!-- 总览 -->
       <div class="score-overview">
@@ -3050,6 +3126,52 @@
       });
     });
   });
+
+  // 红线问题 / 评分表 搜索
+  function filterItems(input) {
+    const bar = input.closest('.report-search');
+    const content = input.closest('.content');
+    const scope = content.getAttribute('data-search-scope');
+    const kw = input.value.trim().toLowerCase();
+    const searching = kw.length > 0;
+
+    bar.classList.toggle('has-text', searching);
+
+    // 搜索时隐藏概览类辅助区块，聚焦结果
+    const helpers = content.querySelectorAll('.summary-strip, .score-overview, .module-filter');
+    helpers.forEach(h => h.style.display = searching ? 'none' : '');
+
+    const itemSel = scope === 'redline' ? '.redline-item' : '.score-item';
+    const items = content.querySelectorAll(itemSel);
+    let matched = 0;
+    items.forEach(it => {
+      const hit = !searching || it.textContent.toLowerCase().includes(kw);
+      it.style.display = hit ? '' : 'none';
+      if (hit) matched++;
+    });
+
+    // 红线问题按分组展示，隐藏无匹配项的分组
+    content.querySelectorAll('.group').forEach(g => {
+      const visible = g.querySelectorAll('.redline-item:not([style*="display: none"])').length;
+      g.style.display = (!searching || visible > 0) ? '' : 'none';
+    });
+
+    // 无结果提示
+    let empty = content.querySelector('.search-empty');
+    if (!empty) {
+      empty = document.createElement('div');
+      empty.className = 'search-empty';
+      empty.textContent = '未找到相关问题';
+      content.appendChild(empty);
+    }
+    empty.style.display = (searching && matched === 0) ? 'block' : 'none';
+  }
+
+  function clearSearch(clear) {
+    const input = clear.closest('.report-search').querySelector('input');
+    input.value = '';
+    filterItems(input);
+  }
 </script>
 
 </body>

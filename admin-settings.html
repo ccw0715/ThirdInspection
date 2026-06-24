@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<title>检查配置 · 第三方检查后台</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { height: 100%; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Helvetica Neue", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+    color: #1f2329;
+    background: #f5f6f7;
+    font-size: 14px;
+    line-height: 1.5;
+  }
+
+  :root {
+    --primary: #1677ff;
+    --primary-hover: #4096ff;
+    --primary-light: #e6f4ff;
+    --danger: #ff4d4f;
+    --success: #52c41a;
+    --warning: #faad14;
+    --text: #1f2329;
+    --text-2: #4e5969;
+    --text-3: #86909c;
+    --text-4: #c9cdd4;
+    --border: #e5e6eb;
+    --border-2: #f2f3f5;
+    --bg: #f5f6f7;
+    --shadow: 0 1px 2px rgba(0,0,0,0.04);
+  }
+
+  /* 整体布局 */
+  .layout { display: flex; min-height: 100vh; }
+
+  /* 侧边栏 */
+  .sidebar { width: 220px; background: #001529; color: #fff; flex-shrink: 0; }
+  .logo {
+    height: 56px; display: flex; align-items: center; padding: 0 20px;
+    font-size: 16px; font-weight: 600; border-bottom: 1px solid rgba(255,255,255,0.06);
+  }
+  .logo .dot { width: 8px; height: 8px; background: var(--primary); border-radius: 2px; margin-right: 10px; }
+  .menu { padding: 12px 0; }
+  .menu-group { color: rgba(255,255,255,0.4); font-size: 12px; padding: 12px 20px 8px; }
+  .menu-item {
+    height: 40px; padding: 0 20px; display: flex; align-items: center;
+    color: rgba(255,255,255,0.75); font-size: 14px; cursor: pointer;
+    border-left: 3px solid transparent;
+  }
+  .menu-item:hover { background: rgba(255,255,255,0.04); color: #fff; }
+  .menu-item.active { background: rgba(22,119,255,0.15); color: #fff; border-left-color: var(--primary); }
+  .menu-item .ic { width: 18px; margin-right: 10px; font-size: 14px; text-align: center; opacity: 0.8; }
+
+  /* 主区域 */
+  .main { flex: 1; display: flex; flex-direction: column; min-width: 0; }
+  .topbar {
+    height: 56px; background: #fff; border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; padding: 0 24px; gap: 12px;
+  }
+  .topbar .crumb { color: var(--text-2); font-size: 13px; }
+  .topbar .crumb .sep { margin: 0 6px; color: var(--text-4); }
+  .topbar .crumb .cur { color: var(--text); font-weight: 500; }
+  .topbar .right {
+    margin-left: auto; display: flex; align-items: center; gap: 16px;
+    color: var(--text-2); font-size: 13px;
+  }
+  .topbar .avatar {
+    width: 30px; height: 30px; border-radius: 50%;
+    background: linear-gradient(135deg, #4096ff, #1677ff); color: #fff;
+    display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 600;
+  }
+
+  .page { padding: 16px; flex: 1; overflow: auto; }
+
+  /* 卡片块 */
+  .card { background: #fff; border-radius: 6px; box-shadow: var(--shadow); margin-bottom: 12px; }
+  .card-head {
+    padding: 16px 24px; border-bottom: 1px solid var(--border-2);
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .card-head .title { font-size: 15px; font-weight: 600; color: var(--text); }
+  .card-head .desc { font-size: 12px; color: var(--text-3); margin-top: 2px; }
+  .card-body { padding: 8px 24px; }
+
+  /* 配置项 */
+  .config-item {
+    display: flex; align-items: center; padding: 18px 0;
+    border-bottom: 1px solid var(--border-2);
+  }
+  .config-item:last-child { border-bottom: none; }
+  .config-item .info { flex: 1; padding-right: 24px; }
+  .config-item .info .nm { font-size: 14px; color: var(--text); font-weight: 500; }
+  .config-item .info .ds { font-size: 12px; color: var(--text-3); margin-top: 4px; line-height: 1.6; }
+
+  /* 开关 */
+  .switch {
+    width: 44px; height: 24px; border-radius: 12px; background: var(--text-4);
+    position: relative; cursor: pointer; flex-shrink: 0; transition: background 0.2s;
+  }
+  .switch::after {
+    content: ''; position: absolute; top: 2px; left: 2px;
+    width: 20px; height: 20px; border-radius: 50%; background: #fff;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.2); transition: left 0.2s;
+  }
+  .switch.on { background: var(--primary); }
+  .switch.on::after { left: 22px; }
+  .switch-label { font-size: 13px; color: var(--text-3); margin-left: 12px; min-width: 28px; }
+
+  /* 按钮 */
+  .btn {
+    height: 32px; padding: 0 16px; border-radius: 4px; border: 1px solid var(--border);
+    background: #fff; color: var(--text-2); font-size: 14px; cursor: pointer;
+    display: inline-flex; align-items: center; gap: 6px; font-family: inherit; transition: all 0.2s;
+  }
+  .btn:hover { border-color: var(--primary); color: var(--primary); }
+  .btn.primary { background: var(--primary); color: #fff; border-color: var(--primary); }
+  .btn.primary:hover { background: var(--primary-hover); border-color: var(--primary-hover); color: #fff; }
+
+  .page-foot { padding: 16px 24px; display: flex; gap: 8px; }
+
+  .toast {
+    position: fixed; top: 72px; left: 50%; transform: translateX(-50%);
+    background: rgba(0,0,0,0.78); color: #fff; padding: 8px 18px; border-radius: 6px;
+    font-size: 13px; z-index: 2000; opacity: 0; transition: opacity 0.25s; pointer-events: none;
+  }
+  .toast.show { opacity: 1; }
+</style>
+</head>
+<body>
+
+<div class="layout">
+
+  <!-- 侧边栏 -->
+  <aside class="sidebar">
+    <div class="logo">
+      <span class="dot"></span>第三方检查后台
+    </div>
+    <nav class="menu">
+      <div class="menu-group">基础数据</div>
+      <div class="menu-item" onclick="location.href='admin-projects.html'"><span class="ic">📁</span>项目管理</div>
+      <div class="menu-item" onclick="location.href='admin-templates.html'"><span class="ic">📋</span>检查模板</div>
+      <div class="menu-item" onclick="location.href='admin-inspectors.html'"><span class="ic">👥</span>检查员管理</div>
+
+      <div class="menu-group">检查作业</div>
+      <div class="menu-item" onclick="location.href='admin-inspections.html'"><span class="ic">📝</span>检查管理</div>
+
+      <div class="menu-group">数据分析</div>
+      <div class="menu-item"><span class="ic">📈</span>统计分析</div>
+
+      <div class="menu-group">系统配置</div>
+      <div class="menu-item active"><span class="ic">⚙️</span>检查配置</div>
+    </nav>
+  </aside>
+
+  <!-- 主区域 -->
+  <main class="main">
+    <div class="topbar">
+      <div class="crumb">
+        <span>系统配置</span>
+        <span class="sep">/</span>
+        <span class="cur">检查配置</span>
+      </div>
+      <div class="right">
+        <span>🔔</span>
+        <span>蔡灿武</span>
+        <div class="avatar">蔡</div>
+      </div>
+    </div>
+
+    <div class="page">
+
+      <!-- 图片采集 -->
+      <div class="card">
+        <div class="card-head">
+          <div>
+            <div class="title">图片采集</div>
+            <div class="desc">控制检查员在移动端采集现场照片时的来源限制</div>
+          </div>
+        </div>
+        <div class="card-body">
+          <div class="config-item">
+            <div class="info">
+              <div class="nm">是否允许使用本地图片上传</div>
+              <div class="ds">
+                开启后,检查员上传现场照片时可直接从手机相册（本地）选择图片,不强制要求拍照后存入图库。<br>
+                关闭后,检查员仅能通过现场拍照采集图片,以保证照片的真实性与时效性。
+              </div>
+            </div>
+            <div class="switch on" id="allowLocalUpload" data-key="allowLocalUpload"></div>
+            <span class="switch-label">已开启</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="page-foot">
+        <button class="btn" onclick="resetConfig()">重置</button>
+        <button class="btn primary" onclick="saveConfig()">保存配置</button>
+      </div>
+
+    </div>
+  </main>
+
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+  // 开关切换
+  document.querySelectorAll('.switch').forEach(sw => {
+    sw.addEventListener('click', () => {
+      sw.classList.toggle('on');
+      const label = sw.nextElementSibling;
+      if (label && label.classList.contains('switch-label')) {
+        label.textContent = sw.classList.contains('on') ? '已开启' : '已关闭';
+      }
+    });
+  });
+
+  function showToast(msg) {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.classList.add('show');
+    setTimeout(() => t.classList.remove('show'), 1800);
+  }
+
+  function saveConfig() {
+    showToast('配置已保存');
+  }
+
+  function resetConfig() {
+    document.querySelectorAll('.switch').forEach(sw => {
+      sw.classList.add('on');
+      const label = sw.nextElementSibling;
+      if (label && label.classList.contains('switch-label')) label.textContent = '已开启';
+    });
+    showToast('已重置为默认配置');
+  }
+</script>
+
+</body>
+</html>

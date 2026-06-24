@@ -533,6 +533,9 @@
 
       <div class="menu-group">数据分析</div>
       <div class="menu-item"><span class="ic">📈</span>统计分析</div>
+
+      <div class="menu-group">系统配置</div>
+      <div class="menu-item" onclick="location.href='admin-settings.html'"><span class="ic">⚙️</span>检查配置</div>
     </nav>
   </aside>
 
@@ -594,6 +597,14 @@
           <div class="filter-item">
             <span class="label">手机号</span>
             <input class="input" placeholder="请输入手机号" />
+          </div>
+          <div class="filter-item">
+            <span class="label">角色</span>
+            <select class="select">
+              <option>全部</option>
+              <option>检查员</option>
+              <option>检查管理员</option>
+            </select>
           </div>
           <div class="filter-item">
             <span class="label">状态</span>
@@ -690,7 +701,7 @@
                   </div>
                 </td>
                 <td>137****9087</td>
-                <td><span class="tag role-leader">组长</span></td>
+                <td><span class="tag role-admin">管理员</span></td>
                 <td>8</td>
                 <td>2026-05-08 08:45</td>
                 <td>2025-09-22</td>
@@ -909,7 +920,6 @@
         <div class="ctrl">
           <select class="select">
             <option>检查员</option>
-            <option>组长</option>
             <option>管理员</option>
           </select>
         </div>
